@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Millimetre Architecture — Client Project Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0A0A0A;--ink2:#2A2A2A;--ink3:#6B6B6B;--ink4:#9A9A9A;
+  --paper:#FFFFFF;--paper2:#F7F6F4;--paper3:#F0EEED;
+  --line:#D8D6D2;--line2:#C4C1BC;
+  --gold:#8B7355;--gold-lt:#F2EDE8;--gold-dk:#6B5640;
+  --green:#1A3A2A;--green-lt:#E8F0EB;
+  --red:#5C1A1A;--red-lt:#F5EBEB;
+}
+body{
+  font-family:'Jost',sans-serif;font-weight:300;
+  background:var(--paper2);color:var(--ink);
+  min-height:100vh;font-size:13px;line-height:1.6;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header{
+  background:var(--ink);
+  padding:40px 48px 36px;
+  position:relative;overflow:hidden;
+}
+.header::after{
+  content:'';position:absolute;
+  bottom:0;left:48px;right:48px;
+  height:1px;background:var(--gold);opacity:.4;
+}
+.header-top{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;gap:24px;
+  margin-bottom:28px;
+}
+.brand{
+  display:flex;flex-direction:column;gap:4px;
+}
+.brand-label{
+  font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);
+}
+.brand-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:300;letter-spacing:.1em;
+  color:#fff;
+}
+.brand-url{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:rgba(255,255,255,.3);letter-spacing:.06em;margin-top:2px;
+}
+.header-ref{
+  text-align:right;
+}
+.header-ref-label{
+  font-family:'DM Mono',monospace;font-size:8px;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);margin-bottom:4px;
+}
+.header-ref-date{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:rgba(255,255,255,.5);
+}
+.header-body{
+  display:flex;flex-direction:column;gap:6px;
+}
+.header-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:32px;font-weight:300;letter-spacing:.06em;
+  color:#fff;line-height:1.1;
+}
+.header-sub{
+  font-size:11.5px;font-weight:300;
+  color:rgba(255,255,255,.45);letter-spacing:.04em;
+  max-width:480px;line-height:1.6;margin-top:4px;
+}
+
+/* ── Progress bar ───────────────────────────────────────────── */
+.progress-bar{
+  background:var(--ink);
+  padding:0 48px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.progress-steps{
+  display:flex;gap:0;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.progress-step{
+  flex:1;padding:12px 0;
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:all .2s;
+  border-bottom:2px solid transparent;
+  opacity:.4;
+}
+.progress-step.active{opacity:1;border-bottom-color:var(--gold)}
+.progress-step.done{opacity:.6;border-bottom-color:var(--green)}
+.progress-step-num{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:rgba(255,255,255,.4);
+  width:18px;height:18px;
+  border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s;
+}
+.progress-step.active .progress-step-num{
+  border-color:var(--gold);color:var(--gold);
+}
+.progress-step.done .progress-step-num{
+  background:var(--green);border-color:var(--green);color:#fff;
+  font-size:10px;
+}
+.progress-step-label{
+  font-size:10px;font-weight:300;letter-spacing:.06em;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.progress-step.active .progress-step-label{color:rgba(255,255,255,.9)}
+
+/* ── Content ────────────────────────────────────────────────── */
+.container{max-width:780px;margin:0 auto;padding:40px 24px 80px}
+
+/* ── Section ────────────────────────────────────────────────── */
+.form-section{
+  background:var(--paper);
+  border:1px solid var(--line);
+  margin-bottom:2px;
+  display:none;
+}
+.form-section.active{display:block;animation:fu .25s ease}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.section-head{
+  padding:20px 28px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;
+}
+.section-num{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--gold);letter-spacing:.08em;
+  width:24px;height:24px;
+  border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:18px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;
+}
+.section-note{
+  font-size:10px;color:var(--ink4);margin-left:auto;
+  font-family:'DM Mono',monospace;letter-spacing:.06em;
+}
+.section-body{padding:24px 28px}
+
+/* ── Fields ─────────────────────────────────────────────────── */
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{
+  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:400;
+  color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;
+}
+.req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{
+  font-family:'Jost',sans-serif;font-size:13px;font-weight:300;
+  padding:10px 12px;
+  border:1px solid var(--line2);
+  background:var(--paper2);color:var(--ink);
+  outline:none;width:100%;
+  transition:border-color .15s,background .15s;
+  letter-spacing:.02em;appearance:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--ink);background:var(--paper);
+}
+.field input::placeholder,.field textarea::placeholder{
+  color:var(--ink4);font-style:italic;font-weight:300;
+}
+.field textarea{min-height:70px;resize:vertical}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6B6B'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:32px;cursor:pointer;
+}
+.field-hint{
+  font-size:10px;color:var(--ink4);
+  font-family:'DM Mono',monospace;letter-spacing:.04em;
+  margin-top:2px;font-style:italic;
+}
+
+/* ── Notice ──────────────────────────────────────────────────── */
+.notice{
+  padding:10px 14px;font-size:11.5px;margin-bottom:20px;
+  border-left:2px solid var(--gold);
+  background:var(--gold-lt);color:var(--gold-dk);
+  font-weight:300;line-height:1.55;
+}
+
+/* ── Navigation ─────────────────────────────────────────────── */
+.nav-row{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:20px 28px;
+  border-top:1px solid var(--line);
+  background:var(--paper2);
+}
+.btn{
+  font-family:'Jost',sans-serif;font-size:11px;font-weight:400;
+  padding:9px 22px;
+  border:1px solid var(--line2);background:var(--paper);color:var(--ink);
+  cursor:pointer;transition:all .15s;
+  letter-spacing:.08em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn-primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn-primary:hover{background:var(--ink2)}
+.btn-gold{background:var(--gold);color:var(--paper);border-color:var(--gold)}
+.btn-gold:hover{background:var(--gold-dk)}
+.step-indicator{
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:var(--ink4);letter-spacing:.1em;
+}
+
+/* ── Completion screen ───────────────────────────────────────── */
+.completion{
+  background:var(--paper);border:1px solid var(--line);
+  padding:48px;text-align:center;display:none;
+}
+.completion.active{display:block;animation:fu .3s ease}
+.completion-icon{
+  font-size:36px;margin-bottom:20px;
+}
+.completion-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:300;letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.completion-sub{
+  font-size:12px;color:var(--ink3);margin-bottom:28px;
+  font-weight:300;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto;
+}
+.completion-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.json-preview{
+  margin-top:20px;text-align:left;
+  background:var(--paper2);border:1px solid var(--line);
+  padding:14px;font-family:'DM Mono',monospace;font-size:9.5px;
+  color:var(--ink3);max-height:120px;overflow:hidden;
+  position:relative;line-height:1.6;
+}
+.json-preview::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:40px;background:linear-gradient(transparent,var(--paper2));
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.footer{
+  background:var(--ink);
+  padding:16px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;
+  margin-top:40px;
+}
+.footer-copy{
+  font-family:'DM Mono',monospace;font-size:8.5px;
+  color:rgba(255,255,255,.3);letter-spacing:.08em;
+}
+.footer-links{
+  display:flex;gap:16px;
+}
+.footer-links a{
+  font-family:'DM Mono',monospace;font-size:8.5px;
+  color:rgba(255,255,255,.35);letter-spacing:.06em;
+  text-decoration:none;transition:color .15s;
+}
+.footer-links a:hover{color:rgba(255,255,255,.7)}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media(max-width:640px){
+  .header{padding:28px 20px 24px}
+  .header-top{flex-direction:column}
+  .progress-bar{padding:0 20px}
+  .container{padding:24px 12px 60px}
+  .section-body{padding:18px 16px}
+  .nav-row{padding:14px 16px}
+  .g2,.g3{grid-template-columns:1fr}
+  .span2,.span3{grid-column:span 1}
+  .footer{padding:12px 20px}
+  .header-title{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────── -->
+<div class="header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-label">Prepared by</div>
+      <div class="brand-name">Millimetre Architecture</div>
+      <div class="brand-url">millimetre-architecture.com</div>
+    </div>
+    <div class="header-ref">
+      <div class="header-ref-label">Date issued</div>
+      <div class="header-ref-date" id="issue-date"></div>
+    </div>
+  </div>
+  <div class="header-body">
+    <div class="header-title">Client Project<br>Intake Form</div>
+    <div class="header-sub">Please complete all required fields. This information will be used to prepare your building plan submission documents. All fields marked * are required.</div>
+  </div>
+</div>
+
+<!-- ── Progress ────────────────────────────────────────────────── -->
+<div class="progress-bar">
+  <div class="progress-steps">
+    <div class="progress-step active" id="step-0" onclick="goStep(0)">
+      <div class="progress-step-num" id="step-num-0">1</div>
+      <div class="progress-step-label">Your details</div>
+    </div>
+
+    <div class="progress-step" id="step-1" onclick="goStep(1)">
+      <div class="progress-step-num" id="step-num-1">2</div>
+      <div class="progress-step-label">Property</div>
+    </div>
+    <div class="progress-step" id="step-2" onclick="goStep(2)">
+      <div class="progress-step-num" id="step-num-2">3</div>
+      <div class="progress-step-label">Company</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Form sections ───────────────────────────────────────────── -->
+<div class="container">
+
+  <!-- Step 1: Client details -->
+  <div class="form-section active" id="section-0">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">Your details</div>
+      <div class="section-note">Registered owner / applicant</div>
+    </div>
+    <div class="section-body">
+      <div class="notice">Please provide your details exactly as they appear on your ID document or company registration.</div>
+      <div class="grid g3">
+        <div class="field">
+          <label>Title<span class="req">*</span></label>
+          <select id="client_title">
+            <option value="">— Select —</option>
+            <option>Mr</option><option>Mrs</option><option>Ms</option><option>Dr</option>
+          </select>
+        </div>
+        <div class="field span2">
+          <label>Full name &amp; surname<span class="req">*</span></label>
+          <input id="client_name" placeholder="As it appears on your ID document">
+        </div>
+        <div class="field span3">
+          <label>Relationship to property<span class="req">*</span></label>
+          <select id="client_ref">
+            <option value="">— Select your relationship to the property —</option>
+            <option>Registered Owner</option>
+            <option>Sectional Title Owner (POA)</option>
+            <option>Tenant (POA)</option>
+            <option>Legal Representative</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ID number<span class="req">*</span></label>
+          <input id="client_id" placeholder="13-digit SA ID number">
+        </div>
+        <div class="field span2">
+          <label>Email address<span class="req">*</span></label>
+          <input id="client_email" type="email" placeholder="Your primary email address">
+        </div>
+        <div class="field">
+          <label>Home telephone</label>
+          <input id="client_home_tel" placeholder="e.g. 011 555 0000">
+        </div>
+        <div class="field">
+          <label>Cell number<span class="req">*</span></label>
+          <input id="client_cell" placeholder="e.g. +27 82 000 0000">
+        </div>
+        <div class="field">
+          <label>Fax</label>
+          <input id="client_fax" placeholder="Optional">
+        </div>
+        <div class="field span3">
+          <label>Residential / physical address<span class="req">*</span></label>
+          <input id="client_physical_addr" placeholder="Street address, suburb, city">
+          <div class="field-hint">Full street address as registered</div>
+        </div>
+        <div class="field">
+          <label>Area code</label>
+          <input id="client_physical_code" placeholder="e.g. 2196">
+        </div>
+        <div class="field span2">
+          <label>Postal address</label>
+          <input id="client_postal_addr" placeholder="PO Box or postal address if different">
+        </div>
+        <div class="field">
+          <label>Postal code</label>
+          <input id="client_postal_code" placeholder="e.g. 2196">
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <span class="step-indicator">Step 1 of 3</span>
+      <button class="btn btn-primary" onclick="nextStep(0)">Next: Property details →</button>
+    </div>
+  </div>
+
+  
+    <div class="nav-row">
+      <button class="btn" onclick="prevStep(1)">← Back</button>
+      <span class="step-indicator">Step 2 of 4</span>
+      <button class="btn btn-primary" onclick="nextStep(1)">Next: Property details →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Property -->
+  <div class="form-section" id="section-1">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div class="section-title">Property details</div>
+      <div class="section-note">As per title deed</div>
+    </div>
+    <div class="section-body">
+      <div class="notice">Please provide property details exactly as they appear on your title deed or rates account.</div>
+      <div class="grid g3">
+        <div class="field">
+          <label>ERF / stand number</label>
+          <input id="proj_erf" placeholder="Leave blank if unsure — architect will complete">
+        </div>
+        <div class="field span2">
+          <label>Township / suburb<span class="req">*</span></label>
+          <input id="proj_township" placeholder="e.g. Ferndale">
+        </div>
+        <div class="field span3">
+          <label>Street address of property<span class="req">*</span></label>
+          <input id="proj_addr" placeholder="Full street address including suburb and city">
+        </div>
+        <div class="field">
+          <label>Business partner no.</label>
+          <input id="client_bp_no" placeholder="If known (A19 form)">
+          <div class="field-hint">City of Cape Town accounts only</div>
+        </div>
+      </div>
+
+      
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevStep(1)">← Back</button>
+      <span class="step-indicator">Step 2 of 3</span>
+      <button class="btn btn-primary" onclick="nextStep(1)">Next: Company details →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Company (optional) -->
+  <div class="form-section" id="section-2">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-title">Company details</div>
+      <div class="section-note">Complete only if owner is a company</div>
+    </div>
+    <div class="section-body">
+      <div class="notice">Only complete this section if the registered owner is a company, CC, trust or other juristic person. If the property is registered in your personal name, skip this section and click Submit.</div>
+      <div class="grid g3">
+        <div class="field span2">
+          <label>Company / CC / trust name</label>
+          <input id="company_name" placeholder="Registered entity name">
+        </div>
+        <div class="field">
+          <label>Registration number</label>
+          <input id="company_reg_no" placeholder="e.g. 2010/123456/07">
+        </div>
+        <div class="field">
+          <label>CC / trust registration no.</label>
+          <input id="client_cc_trust_no" placeholder="e.g. CK2010/012345/23">
+        </div>
+        <div class="field span2">
+          <label>Majority shareholder / member name</label>
+          <input id="client_shareholding_name" placeholder="Full name of majority shareholder or member">
+        </div>
+        <div class="field">
+          <label>Shareholding %</label>
+          <input id="client_shareholding" placeholder="e.g. 100%">
+        </div>
+        <div class="field span2">
+          <label>Authorised representative name</label>
+          <input id="auth_rep_name_override" placeholder="If different from architect — full name">
+          <div class="field-hint">Leave blank if the architect acts as representative</div>
+        </div>
+        <div class="field">
+          <label>Authorised rep — ID number</label>
+          <input id="auth_rep_id_override" placeholder="ID or passport number">
+        </div>
+        <div class="field span2">
+          <label>Capacity / role</label>
+          <input id="auth_rep_capacity" placeholder="e.g. Director, Member, Trustee">
+        </div>
+        <div class="field">
+          <label>Resolution meeting place</label>
+          <input id="resolution_place" placeholder="e.g. Johannesburg">
+        </div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevStep(2)">← Back</button>
+      <span class="step-indicator">Step 3 of 3</span>
+      <button class="btn btn-gold" onclick="submitForm()">Submit to Millimetre →</button>
+    </div>
+  </div>
+
+  <!-- Completion screen -->
+  <div class="completion" id="completion">
+    <div class="completion-icon">✓</div>
+    <div class="completion-title">Form submitted</div>
+    <div class="completion-sub">Thank you. Your project intake information has been captured. Your architect will be in touch shortly.<br><br>Your data has also been packaged as a file for direct import into our form filler system.</div>
+    <div class="completion-btns">
+      <button class="btn btn-primary" onclick="downloadJSON()">⬇ Download project file</button>
+      <button class="btn" onclick="copyJSON()">📋 Copy to clipboard</button>
+      <button class="btn" onclick="resetForm()">Submit another</button>
+    </div>
+    <div class="json-preview" id="json-preview"></div>
+  </div>
+
+</div>
+
+<!-- ── Footer ───────────────────────────────────────────────────── -->
+<div class="footer">
+  <span class="footer-copy">© 2025 Millimetre Architecture. All rights reserved.</span>
+  <div class="footer-links">
+    <a href="https://www.millimetre-architecture.com" target="_blank">millimetre-architecture.com</a>
+    <a href="mailto:joshil@millimetre-architecture.com">joshil@millimetre-architecture.com</a>
+    <a href="tel:+27829330414">+27 82 933 0414</a>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────
+let currentStep = 0;
+const TOTAL_STEPS = 3;
+
+// ── Init ──────────────────────────────────────────────────────────
+document.getElementById('issue-date').textContent =
+  new Date().toLocaleDateString('en-ZA', {day:'numeric', month:'long', year:'numeric'});
+
+// ── Navigation ────────────────────────────────────────────────────
+function goStep(n) {
+  if (n > currentStep) return; // can only go back via clicking steps
+  showStep(n);
+}
+
+function nextStep(current) {
+  if (!validateStep(current)) return;
+  showStep(current + 1);
+}
+
+function prevStep(current) {
+  showStep(current - 1);
+}
+
+function showStep(n) {
+  // Hide all sections
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('completion').classList.remove('active');
+
+  if (n >= TOTAL_STEPS) {
+    // Show completion
+    document.getElementById('completion').classList.add('active');
+    return;
+  }
+
+  document.getElementById('section-' + n).classList.add('active');
+  currentStep = n;
+
+  // Update progress steps
+  document.querySelectorAll('.progress-step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    const num = document.getElementById('step-num-' + i);
+    if (i < n)      { el.classList.add('done'); if(num) num.textContent = '✓'; }
+    else if (i === n) { el.classList.add('active'); if(num) num.textContent = i+1; }
+    else             { if(num) num.textContent = i+1; }
+  });
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── Validation ────────────────────────────────────────────────────
+function validateStep(step) {
+  const required = {
+    0: ['client_title','client_name','client_ref','client_id','client_email','client_cell','client_physical_addr'],
+    1: ['proj_township','proj_addr'],
+    2: [], // company section is optional
+  };
+
+  const fields = required[step] || [];
+  let valid = true;
+
+  // Clear previous errors
+  document.querySelectorAll('.field-error').forEach(e => e.remove());
+  document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      valid = false;
+      el && el.closest('.field') && showError(el, 'This field is required');
+    }
+  });
+
+  if (!valid) {
+    // Scroll to first error
+    const firstError = document.querySelector('.input-error');
+    if (firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  return valid;
+}
+
+function showError(input, msg) {
+  input.style.borderColor = 'var(--red)';
+  input.classList.add('input-error');
+  const err = document.createElement('div');
+  err.className = 'field-error';
+  err.style.cssText = 'font-size:10px;color:var(--red);font-family:DM Mono,monospace;margin-top:3px;';
+  err.textContent = msg;
+  input.parentNode.appendChild(err);
+  input.addEventListener('input', () => {
+    input.style.borderColor = '';
+    input.classList.remove('input-error');
+    err.remove();
+  }, {once:true});
+}
+
+// ── Submit ────────────────────────────────────────────────────────
+function submitForm() {
+  if (!validateStep(3)) return;
+
+  // Build the project data object — matches exactly what the app's projectWriteData() expects
+  const projectData = {
+    fields: {
+      // Client
+      client_title:          val('client_title'),
+      client_name:           val('client_name'),
+      client_ref:            val('client_ref'),
+      client_id:             val('client_id'),
+      client_email:          val('client_email'),
+      client_home_tel:       val('client_home_tel'),
+      client_cell:           val('client_cell'),
+      client_fax:            val('client_fax'),
+      client_physical_addr:  val('client_physical_addr'),
+      client_physical_code:  val('client_physical_code'),
+      client_postal_addr:    val('client_postal_addr'),
+      client_postal_code:    val('client_postal_code'),
+      client_cc_trust_no:    val('client_cc_trust_no'),
+      client_shareholding:   val('client_shareholding'),
+      client_bp_no:          val('client_bp_no'),
+      // Property
+      proj_erf:              val('proj_erf'),
+      proj_township:         val('proj_township'),
+      proj_addr:             val('proj_addr'),
+      proj_municipality:     '',
+      proj_type:             '',
+      proj_date:             '',
+      proj_class:            '',
+      proj_complexity:       '',
+      proj_sensitivity:      '',
+      proj_env:              '',
+      proj_heritage:         '',
+      proj_social:           '',
+      heritage_year_site:    '',
+      heritage_year_bldg:    '',
+      heritage_years_constr: '',
+      other_years_constr:    '',
+      // Company
+      company_name:          val('company_name'),
+      company_reg_no:        val('company_reg_no'),
+      auth_rep_name_override:val('auth_rep_name_override'),
+      auth_rep_id_override:  val('auth_rep_id_override'),
+      auth_rep_capacity:     val('auth_rep_capacity'),
+      resolution_place:      val('resolution_place'),
+      resolution_date:       '',
+      sans_occupancy:        '',
+    },
+    scheduleA:    {},
+    scheduleB:    {},
+    poaSel:       [],
+    poaOtherText: '',
+    formState:    {},
+    submittedAt:  new Date().toISOString(),
+    submittedBy:  val('client_name'),
+    projectRef:   val('proj_erf') + ' — ' + val('proj_township'),
+    _source:      'Millimetre Client Intake Form v1',
+    _instructions:'Load this file in the Council Form Filler: Project bar → select project dropdown → this will appear as a saved project after import. Or use: Project bar → import.',
+  };
+
+  // Store for download/copy
+  window._lastSubmission = projectData;
+
+  // Show completion
+  showStep(TOTAL_STEPS);
+
+  // Show preview
+  const preview = JSON.stringify(projectData, null, 2).substring(0, 400) + '\n...';
+  document.getElementById('json-preview').textContent = preview;
+}
+
+function val(id) {
+  return (document.getElementById(id)||{}).value || '';
+}
+
+// ── Download / copy ───────────────────────────────────────────────
+function downloadJSON() {
+  const data     = window._lastSubmission;
+  const filename = (data.projectRef || 'project').replace(/[^a-zA-Z0-9 _-]/g,'_') + '_intake.json';
+  const blob     = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyJSON() {
+  const text = JSON.stringify(window._lastSubmission, null, 2);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = '📋 Copy to clipboard', 2000);
+  });
+}
+
+function resetForm() {
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  showStep(0);
+}
+</script>
+</body>
+</html>
