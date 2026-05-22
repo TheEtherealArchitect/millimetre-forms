@@ -706,6 +706,22 @@ select.pr-edit{
 .sb-auth-signout{background:none;border:none;color:rgba(255,255,255,.28);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;padding:0;letter-spacing:.06em;text-align:left;transition:color .15s}
 .sb-auth-signout:hover{color:rgba(255,255,255,.6)}
 
+/* ── Pack export warning ──────────────────────────────────────── */
+.pack-warn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1020;display:flex;align-items:center;justify-content:center}
+.pack-warn-overlay.hidden{display:none}
+.pack-warn-box{background:var(--paper);border-radius:6px;padding:36px 32px 28px;max-width:420px;width:90%;box-shadow:0 12px 48px rgba(0,0,0,.35);text-align:center}
+.pack-warn-icon{font-size:32px;margin-bottom:12px}
+.pack-warn-title{font-family:'Jost',sans-serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.pack-warn-body{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:8px}
+.pack-warn-count{display:inline-block;margin:12px 0 16px;background:#FFF8EC;border:1.5px solid #E8C96B;border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;color:#7A5C00}
+.pack-warn-checklist{text-align:left;font-size:12px;color:var(--ink2);margin:0 0 20px;padding:0 0 0 16px;line-height:1.8}
+.pack-warn-actions{display:flex;gap:10px;justify-content:center}
+.pack-warn-btn{padding:11px 22px;border-radius:3px;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1.5px solid;transition:all .15s}
+.pack-warn-btn.confirm{background:var(--ink);border-color:var(--ink);color:#fff}
+.pack-warn-btn.confirm:hover{background:#333;border-color:#333}
+.pack-warn-btn.cancel{background:transparent;border-color:var(--line2);color:var(--ink4)}
+.pack-warn-btn.cancel:hover{border-color:var(--ink2);color:var(--ink2)}
+
 /* ── Guided tour ─────────────────────────────────────────────── */
 .tour-overlay{position:fixed;inset:0;z-index:1010;pointer-events:none}
 .tour-overlay.active{pointer-events:none}
@@ -1317,7 +1333,7 @@ select.pr-edit{
 
 const PDF_B64 = {};
 async function loadPDFs() {
-  const ids = ['coj','company_res','sacap','sans','poa','a19'];
+  const ids = ['coj','company_res','sacap','sans','poa','a19','phrag'];
   for (const id of ids) {
     if (PDF_B64[id]) continue; // already loaded
     const res = await fetch('pdfs/' + id + '.pdf');
@@ -1902,9 +1918,29 @@ function renderExport() {
     <span style="font-size:11px">F-04 Company Resolution — Witness full name and date must be completed by hand on the printed form.</span></div></div>` : '';
 }
 
+let _packWarnResolve = null;
+function packWarnCancel() {
+  document.getElementById('pack-warn-overlay').classList.add('hidden');
+  if (_packWarnResolve) { _packWarnResolve(false); _packWarnResolve = null; }
+}
+function packWarnConfirm() {
+  document.getElementById('pack-warn-overlay').classList.add('hidden');
+  if (_packWarnResolve) { _packWarnResolve(true); _packWarnResolve = null; }
+}
+function showPackExportWarning() {
+  return new Promise(resolve => {
+    _packWarnResolve = resolve;
+    document.getElementById('pack-warn-overlay').classList.remove('hidden');
+  });
+}
+
 async function exportAll() {
   const d = getData(), sel = getEligibleForms(d);
   if (!sel.length) { alert('No forms selected.'); return; }
+  if (authTier() === 'pack') {
+    const confirmed = await showPackExportWarning();
+    if (!confirmed) return;
+  }
   const btn = document.getElementById('export-btn');
   btn.disabled = true; btn.textContent = '⏳ Generating…';
   const as = getSig('arch'), cs = getSig('client');
@@ -2497,6 +2533,10 @@ function authHidePrompt() {
 
 function projectSave() {
   if (!requireAuth('save projects')) return;
+  const plimit = tierProjectLimit();
+  if (plimit === 0) { profileToast('⚠ ' + tierLimitMsg('projects', 0), true); return; }
+  const existing = Object.keys(projectGetAll()).length;
+  if (existing >= plimit) { profileToast('⚠ ' + tierLimitMsg('projects', plimit), true); return; }
   profileModal({
     title:        'Save project',
     body:         'Enter a name for this project. Client name and ERF number work well.',
@@ -2576,6 +2616,9 @@ function stopAutoSave() {
 // ── Import project from client intake JSON file ───────────────────
 function projectImportFile(input) {
   if (!requireAuth('import projects')) { input.value = ''; return; }
+  const plimit = tierProjectLimit();
+  if (plimit === 0) { profileToast('⚠ ' + tierLimitMsg('projects', 0), true); input.value = ''; return; }
+  if (Object.keys(projectGetAll()).length >= plimit) { profileToast('⚠ ' + tierLimitMsg('projects', plimit), true); input.value = ''; return; }
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
@@ -2743,6 +2786,10 @@ function profileOnSelect() {
 // Save new profile — prompts for name
 function profileSave() {
   if (!requireAuth('save profiles')) return;
+  const prlimit = tierProfileLimit();
+  if (prlimit === 0) { profileToast('⚠ ' + tierLimitMsg('profiles', 0), true); return; }
+  const existingProfiles = Object.keys(profileGetAll()).length;
+  if (existingProfiles >= prlimit) { profileToast('⚠ ' + tierLimitMsg('profiles', prlimit), true); return; }
   profileModal({
     title: 'Save architect profile',
     body: 'Enter a name for this profile. It will store all fields in the Architect / Professional section.',
@@ -2831,6 +2878,9 @@ function profileExport() {
 // Import profiles from a JSON file
 function profileImport(input) {
   if (!requireAuth('import profiles')) { input.value = ''; return; }
+  const prlimit = tierProfileLimit();
+  if (prlimit === 0) { profileToast('⚠ ' + tierLimitMsg('profiles', 0), true); input.value = ''; return; }
+  if (Object.keys(profileGetAll()).length >= prlimit) { profileToast('⚠ ' + tierLimitMsg('profiles', prlimit), true); input.value = ''; return; }
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -3174,7 +3224,17 @@ let _authUser    = null;
 let _authProfile = null;
 
 function authTier()   { return _authProfile?.subscription_tier || 'free'; }
-function authIsPaid() { return ['professional','firm'].includes(authTier()); }
+function authIsPaid() { return ['professional','firm','pack'].includes(authTier()); }
+function tierProjectLimit() {
+  switch(authTier()){case 'pack':return 2;case 'professional':case 'firm':return Infinity;default:return 0;}
+}
+function tierProfileLimit() {
+  switch(authTier()){case 'pack':return 1;case 'professional':return 1;case 'firm':return 5;default:return 0;}
+}
+function tierLimitMsg(type,limit){
+  if(limit===0) return `Upgrade your plan to save ${type}.`;
+  return `Your plan allows ${limit} saved ${type}. You've reached the limit — upgrade for more.`;
+}
 
 // ── Modal controls ───────────────────────────────────────────────
 function authShowModal(tab) {
@@ -3734,6 +3794,27 @@ document.addEventListener('DOMContentLoaded',()=>{
   tourStart();
 });
 </script>
+
+<!-- ═══ SUBMISSION PACK EXPORT WARNING ═══ -->
+<div id="pack-warn-overlay" class="pack-warn-overlay hidden">
+  <div class="pack-warn-box">
+    <div class="pack-warn-icon">⚠️</div>
+    <div class="pack-warn-title">You're about to use a submission</div>
+    <div class="pack-warn-body">Your Submission Pack includes 2 export credits.<br>Once this export is confirmed, <strong>1 credit will be used</strong> and cannot be undone.</div>
+    <div class="pack-warn-count" id="pack-warn-count">1 of 2 credits will be used</div>
+    <ul class="pack-warn-checklist">
+      <li>All client details are correct (name, ID, address)</li>
+      <li>Architect details and SACAP number are correct</li>
+      <li>ERF number and township are correct</li>
+      <li>Signatures have been captured</li>
+      <li>The correct forms are selected</li>
+    </ul>
+    <div class="pack-warn-actions">
+      <button class="pack-warn-btn cancel" onclick="packWarnCancel()">Cancel — go back</button>
+      <button class="pack-warn-btn confirm" onclick="packWarnConfirm()">I've checked — export now</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ GUIDED TOUR ═══ -->
 <div id="tour-overlay" class="tour-overlay">
