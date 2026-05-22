@@ -183,8 +183,8 @@ body{
 .tb-auth-signout:hover{color:var(--ink)}
 .tb-auth-upgrade{padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .tb-auth-upgrade:hover{background:var(--gold-dk)}
-.tb-auth-admin{padding:5px 13px;background:var(--ink2);color:rgba(255,255,255,.7);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;cursor:pointer;transition:background .15s}
-.tb-auth-admin:hover{background:var(--ink);color:#fff}
+.tb-auth-admin{padding:2px 9px;background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:10px;font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.tb-auth-admin:hover{background:var(--gold);color:#fff}
 .tb-test-badge{background:#E8C96B;color:#5A3C00;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:3px}
 
 /* ── Admin panel ─────────────────────────────────────────────────── */
@@ -1276,37 +1276,37 @@ select.pr-edit{
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-01 — COJ Building Plan Submission Form</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('coj','F01_COJ_Building_Plan_Submission_Form.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('coj','F01 COJ Building Plan Submission Form.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-02 — SACAP Compliance Certificate</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('sacap','F02_SACAP_Compliance_Certificate.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('sacap','F02 SACAP Compliance Certificate.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-03 — SANS 10400-A Form 1</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('sans','F03_SANS_10400_Form_1.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('sans','F03 SANS 10400 Form 1.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-04 — Company Resolution Form</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('company_res','F04_Company_Resolution_Form.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('company_res','F04 Company Resolution Form.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-05 — MPBL LUM02 Power of Attorney</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('poa','F05_MPBL_LUM02_Power_of_Attorney.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('poa','F05 MPBL LUM02 Power of Attorney.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-06 — Regulation A19 Agreement Form</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('a19','F06_Regulation_A19_Agreement_Form.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('a19','F06 Regulation A19 Agreement Form.pdf',this)\">⬇ Download</button>
       </div>
       <div class="file-item">
         <span>📄</span>
         <div class="fi-name">F-07 — PHRAG Heritage Application</div>
-        <button class="btn btn-sm" onclick=\"downloadBlankPDF('phrag','F07_PHRAG_Heritage_Application.pdf',this)\">⬇ Download</button>
+        <button class="btn btn-sm" onclick=\"downloadBlankPDF('phrag','F07 PHRAG Heritage Application.pdf',this)\">⬇ Download</button>
       </div>
     </div>
   </div>
@@ -1955,7 +1955,7 @@ async function exportAll() {
     await ensurePdfLib();
     const { PDFDocument } = PDFLib;
     const zip = new JSZip();
-    const pfx = (d.proj_erf||'ERF').replace(/\s+/g,'_')+'_'+(d.client_name||'Client').replace(/\s+/g,'_');
+    const pfx = (d.proj_erf||'ERF') + ' ' + (d.client_name||'Client').replace(/[^a-zA-Z0-9 ]/g,' ').trim();
     for (const p of sel) {
       const el = document.getElementById('fi-' + p.id);
       const st = document.getElementById('fs-' + p.id);
@@ -1964,7 +1964,7 @@ async function exportAll() {
       try {
         let bytes = await executePlugin(p, PDFDocument, d, as, cs);
         if (!authIsPaid()) bytes = await addWatermark(bytes, PDFDocument);
-        zip.file(pfx + '_' + p.num + '_' + p.title.replace(/[^a-zA-Z0-9]+/g,'_') + '.pdf', bytes);
+        zip.file(pfx + ' ' + p.num.replace(/[^a-zA-Z0-9]/g,'') + ' ' + p.title.replace(/[^a-zA-Z0-9 ]+/g,' ').trim() + '.pdf', bytes);
         if (el) { el.classList.remove('gen'); el.classList.add('done'); }
         if (st) st.textContent = '✓ Done';
       } catch(e) {
@@ -1976,7 +1976,7 @@ async function exportAll() {
     const blob = await zip.generateAsync({type:'blob'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = pfx + '_Council_Forms.zip'; a.click();
+    a.href = url; a.download = pfx + ' Council Forms.zip'; a.click();
     URL.revokeObjectURL(url);
     btn.textContent = '✓ Downloaded';
     // Log export to Supabase for admin analytics (fire-and-forget — never blocks download)
@@ -3005,12 +3005,20 @@ async function downloadBlankPDF(id, filename, btn) {
     btn.textContent = '⏳';
     btn.disabled = true;
 
-    // Fetch directly from the pdfs/ folder — always fresh, no cache issues
+    await ensurePdfLib();
     const res = await fetch('pdfs/' + id + '.pdf');
     if (!res.ok) throw new Error('Could not fetch PDF (' + res.status + ')');
 
-    // Get as blob directly — no base64 conversion needed, avoids stack overflow
-    const blob = await res.blob();
+    // Load through pdf-lib and flatten all form fields before download.
+    // POA and A19 are pure XFA — pdf-lib cannot flatten XFA, so they are skipped.
+    const arrayBuffer = await res.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
+    if (!['poa', 'a19'].includes(id)) {
+      try { pdfDoc.getForm().flatten(); } catch(e) {}
+    }
+    const pdfBytes = await pdfDoc.save();
+
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url; a.download = filename; a.click();
@@ -3467,18 +3475,18 @@ function authUpdateUI() {
     const upgradeBtn = ['free','pack'].includes(tier)
       ? `<button class="tb-auth-upgrade" onclick="pricingShowModal()">Upgrade</button>`
       : '';
-    const adminBtn = _authProfile?.is_admin
+    const tierOrAdmin = _authProfile?.is_admin
       ? `<button class="tb-auth-admin" onclick="adminOpen()">Admin</button>`
-      : '';
+      : `<span class="tb-auth-tier ${tier}">${labels[tier] || tier}</span>`;
     const testBadge = _testTier !== null
       ? `<span class="tb-test-badge">TESTING: ${labels[_testTier] || _testTier}</span>`
       : '';
     tbAuth.innerHTML = `
       <div class="tb-auth-user">
-        ${testBadge}${adminBtn}
+        ${testBadge}
         ${upgradeBtn}
         <span class="tb-auth-email">${short}</span>
-        <span class="tb-auth-tier ${tier}">${labels[tier] || tier}</span>
+        ${tierOrAdmin}
         <button class="tb-auth-signout" onclick="authLogout()">Sign out</button>
       </div>`;
   }
