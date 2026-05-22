@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Millimetre — Council Form Filler</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -59,6 +60,25 @@ body{
   font-weight:300;
 }
 
+/* ── Signup banner ───────────────────────────────────────────── */
+.signup-banner{
+  background:#000;color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 36px;gap:24px;
+  position:sticky;top:0;z-index:600;
+  border-bottom:2px solid var(--gold);
+  box-shadow:0 2px 14px rgba(0,0,0,.32);
+}
+.signup-banner.hidden{display:none}
+.signup-banner-left{display:flex;align-items:center;gap:18px}
+.signup-banner-logo{height:38px;width:auto;flex-shrink:0;filter:invert(1)}
+.signup-banner-text{}
+.signup-banner-headline{font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;line-height:1.3}
+.signup-banner-sub{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.signup-banner-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.signup-banner-btn{padding:11px 28px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s;white-space:nowrap}
+.signup-banner-btn:hover{background:var(--gold-dk)}
+
 /* ── Shell ───────────────────────────────────────────────────── */
 .shell{display:flex;min-height:100vh}
 
@@ -70,9 +90,10 @@ body{
   position:sticky;top:0;height:100vh;overflow-y:auto;
 }
 .sb-brand{
-  padding:32px 28px 24px;
+  padding:24px 20px 20px;
   border-bottom:1px solid rgba(255,255,255,.08);
 }
+.sb-logo{width:100%;height:auto;display:block;margin-bottom:10px}
 .sb-label{
   font-family:'Jost',sans-serif;
   font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
@@ -149,6 +170,58 @@ body{
 .step-dot{width:24px;height:3px;background:var(--line);transition:background .3s}
 .step-dot.active{background:var(--ink)}
 .step-dot.done{background:var(--gold)}
+.tb-right{display:flex;align-items:center;gap:20px}
+.tb-auth-btn{padding:8px 20px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s;white-space:nowrap}
+.tb-auth-btn:hover{background:var(--gold-dk)}
+.tb-auth-user{display:flex;align-items:center;gap:12px}
+.tb-auth-email{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);letter-spacing:.03em;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-auth-tier{padding:2px 9px;border-radius:10px;font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.tb-auth-tier.free{background:var(--paper3);color:var(--ink4)}
+.tb-auth-tier.professional{background:var(--gold-lt);color:var(--gold-dk)}
+.tb-auth-tier.firm{background:var(--green-lt);color:var(--green)}
+.tb-auth-signout{background:none;border:none;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink4);cursor:pointer;letter-spacing:.06em;padding:0;transition:color .15s}
+.tb-auth-signout:hover{color:var(--ink)}
+.tb-auth-upgrade{padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.tb-auth-upgrade:hover{background:var(--gold-dk)}
+.tb-auth-admin{padding:5px 13px;background:var(--ink2);color:rgba(255,255,255,.7);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;cursor:pointer;transition:background .15s}
+.tb-auth-admin:hover{background:var(--ink);color:#fff}
+
+/* ── Admin panel ─────────────────────────────────────────────────── */
+.adm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:32px 20px 48px;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto}
+.adm-overlay.open{opacity:1;pointer-events:all}
+.adm-card{background:var(--paper);border-radius:8px;width:100%;max-width:920px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.adm-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;background:var(--ink);position:sticky;top:0;z-index:1}
+.adm-hdr-left{display:flex;flex-direction:column;gap:2px}
+.adm-hdr-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;letter-spacing:.04em;color:#fff}
+.adm-hdr-sub{font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;letter-spacing:.06em}
+.adm-hdr-actions{display:flex;align-items:center;gap:10px}
+.adm-refresh{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.06em;padding:6px 14px;border-radius:3px;cursor:pointer;transition:background .15s}
+.adm-refresh:hover{background:rgba(255,255,255,.18)}
+.adm-close-btn{background:none;border:none;color:rgba(255,255,255,.35);font-size:26px;cursor:pointer;line-height:1;padding:0 4px;transition:color .15s}
+.adm-close-btn:hover{color:#fff}
+.adm-section{padding:24px 28px;border-bottom:1px solid var(--line)}
+.adm-section:last-child{border-bottom:none}
+.adm-section-title{font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink4);margin-bottom:16px}
+.adm-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.adm-stat{background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:14px 16px}
+.adm-stat-num{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:400;color:var(--ink);line-height:1}
+.adm-stat-lbl{font-size:10.5px;color:var(--ink3);margin-top:5px;font-weight:300}
+.adm-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.adm-bar-row{display:grid;grid-template-columns:130px 1fr 40px;align-items:center;gap:10px;margin-bottom:8px}
+.adm-bar-label{font-size:12px;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm-bar-track{height:7px;background:var(--paper3);border-radius:4px;overflow:hidden}
+.adm-bar-fill{height:100%;border-radius:4px;min-width:3px}
+.adm-bar-count{font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace}
+.adm-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.adm-tbl th{padding:8px 12px;text-align:left;font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink4);border-bottom:2px solid var(--line);background:var(--paper2)}
+.adm-tbl td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:middle}
+.adm-tbl tr:last-child td{border-bottom:none}
+.adm-tbl tr:hover td{background:var(--paper2)}
+.adm-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+.adm-badge.professional{background:var(--gold-lt);color:var(--gold-dk)}
+.adm-badge.firm{background:var(--green-lt);color:var(--green)}
+.adm-badge.free{background:var(--paper3);color:var(--ink4)}
+.adm-empty{padding:16px 0;color:var(--ink4);font-size:12px}
 
 /* ── Content ─────────────────────────────────────────────────── */
 .content{padding:40px 44px;max-width:1100px;width:100%;flex:1}
@@ -531,6 +604,15 @@ select.pr-edit{
   border-left:3px solid var(--gold);
 }
 .profile-toast.show{opacity:1;transform:none}
+.auth-prompt{position:fixed;bottom:28px;right:28px;background:var(--ink);color:#fff;width:300px;padding:18px 20px;border-left:3px solid var(--gold);box-shadow:0 6px 28px rgba(0,0,0,.3);z-index:999;font-family:'Jost',sans-serif;opacity:0;transform:translateY(14px);transition:opacity .22s,transform .22s;pointer-events:none}
+.auth-prompt.show{opacity:1;transform:none;pointer-events:auto}
+.auth-prompt-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.auth-prompt-sub{font-size:12px;color:rgba(255,255,255,.68);line-height:1.55;margin-bottom:14px}
+.auth-prompt-actions{display:flex;align-items:center;gap:12px}
+.auth-prompt-cta{padding:7px 16px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s;white-space:nowrap}
+.auth-prompt-cta:hover{background:var(--gold-dk)}
+.auth-prompt-dismiss{font-size:11px;color:rgba(255,255,255,.35);background:none;border:none;cursor:pointer;font-family:'Jost',sans-serif;padding:0;letter-spacing:.04em;transition:color .15s}
+.auth-prompt-dismiss:hover{color:rgba(255,255,255,.7)}
 .profile-modal-overlay{
   position:fixed;inset:0;background:rgba(10,10,10,.65);
   z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -582,6 +664,7 @@ select.pr-edit{
 .project-btn.save:hover{background:var(--green-dk)}
 .project-btn.danger{background:var(--red-lt);color:var(--red);border-color:var(--red)}
 .project-btn.danger:hover{background:var(--red);color:#fff}
+.auth-gated{opacity:.32;pointer-events:none}
 .project-autosave{
   font-family:'Jost',sans-serif;font-size:10px;font-weight:400;
   color:var(--ink4);letter-spacing:.04em;margin-left:auto;white-space:nowrap;
@@ -609,15 +692,151 @@ select.pr-edit{
   .span2,.span3{grid-column:span 1}
   .forms-grid{grid-template-columns:1fr}
 }
+
+/* ── Sidebar auth section ─────────────────────────────────────── */
+.sb-auth{margin-top:auto;padding:20px 28px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-auth-btn{display:block;width:100%;padding:9px 14px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:4px;color:rgba(255,255,255,.7);font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:.06em;cursor:pointer;text-align:center;transition:all .15s}
+.sb-auth-btn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.4)}
+.sb-auth-user{display:flex;flex-direction:column;gap:7px}
+.sb-auth-email{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-auth-tier{display:inline-flex;align-items:center;padding:2px 9px;border-radius:10px;font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;width:fit-content}
+.sb-auth-tier.free{background:rgba(255,255,255,.08);color:rgba(255,255,255,.35)}
+.sb-auth-tier.professional{background:rgba(139,115,85,.25);color:var(--gold)}
+.sb-auth-tier.firm{background:rgba(26,58,42,.4);color:#5BBF8A}
+.sb-auth-signout{background:none;border:none;color:rgba(255,255,255,.28);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;padding:0;letter-spacing:.06em;text-align:left;transition:color .15s}
+.sb-auth-signout:hover{color:rgba(255,255,255,.6)}
+
+/* ── Guided tour ─────────────────────────────────────────────── */
+.tour-overlay{position:fixed;inset:0;z-index:500;pointer-events:none}
+.tour-overlay.active{pointer-events:none}
+.tour-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);transition:opacity .3s}
+.tour-spotlight{position:fixed;border-radius:6px;box-shadow:0 0 0 3px var(--gold),0 0 0 9999px rgba(0,0,0,.62);pointer-events:none;z-index:501;display:none}
+.tour-card{position:fixed;display:none;background:var(--paper);border-radius:4px;padding:24px 26px 20px;width:310px;box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:502;pointer-events:auto}
+.tour-step-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink4);margin-bottom:8px}
+.tour-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:.04em;color:var(--ink);margin-bottom:8px;line-height:1.2}
+.tour-card p{font-size:12.5px;color:var(--ink3);line-height:1.65;margin-bottom:18px}
+.tour-actions{display:flex;align-items:center;justify-content:space-between}
+.tour-skip{background:none;border:none;font-size:11px;color:var(--ink4);cursor:pointer;font-family:'Jost',sans-serif;padding:0;letter-spacing:.04em;transition:color .15s}
+.tour-skip:hover{color:var(--ink2)}
+.tour-btns{display:flex;gap:8px}
+.tour-btn{padding:8px 18px;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.tour-btn.primary{background:var(--ink);color:#fff}
+.tour-btn.primary:hover{background:var(--ink2)}
+.tour-btn.secondary{background:var(--paper3);color:var(--ink3)}
+.tour-btn.secondary:hover{background:var(--line)}
+.tour-progress{display:flex;gap:4px;align-items:center}
+.tour-dot{width:16px;height:2px;background:var(--line2);border-radius:1px;transition:background .2s}
+.tour-dot.active{background:var(--ink)}
+.tour-dot.done{background:var(--gold)}
+.tour-cta-step .tour-card{width:340px}
+.tour-anon-link{background:none;border:none;font-size:11px;color:var(--ink4);cursor:pointer;font-family:'Jost',sans-serif;padding:0;letter-spacing:.04em;text-decoration:underline;transition:color .15s}
+.tour-anon-link:hover{color:var(--ink2)}
+
+/* ── Auth modal ────────────────────────────────────────────────── */
+.auth-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
+.auth-overlay.open{display:flex}
+.auth-card{background:var(--paper);width:400px;max-width:calc(100vw - 48px);border-radius:4px;padding:40px;position:relative}
+.auth-logo-header{background:var(--ink);margin:-40px -40px 26px;padding:26px 40px;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center}
+.auth-logo-header img{height:64px;width:auto}
+.auth-close{position:absolute;top:14px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.5);line-height:1;z-index:1}
+.auth-close:hover{color:#fff}
+.auth-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:.06em;margin-bottom:6px;color:var(--ink)}
+.auth-sub{font-size:12px;color:var(--ink3);margin-bottom:24px;line-height:1.6}
+.auth-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:22px}
+.auth-tab{padding:8px 20px;font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink4);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.auth-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.auth-field{margin-bottom:15px}
+.auth-field label{display:block;font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.auth-field input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:3px;font-family:'Jost',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--gold)}
+.auth-pass-wrap{position:relative}
+.auth-pass-wrap input{padding-right:38px}
+.auth-pass-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink4);font-size:15px;line-height:1;padding:2px;transition:color .15s}
+.auth-pass-toggle:hover{color:var(--ink2)}
+.auth-submit{width:100%;padding:12px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;margin-top:6px;transition:background .15s}
+.auth-submit:hover{background:var(--gold-dk)}
+.auth-submit:disabled{opacity:.5;cursor:not-allowed}
+.auth-error{background:var(--red-lt);color:var(--red);border:1px solid rgba(122,26,26,.2);border-radius:3px;padding:10px 12px;font-size:12px;margin-top:14px;display:none}
+.auth-error.show{display:block}
+.auth-notice{background:var(--gold-lt);border:1px solid rgba(139,115,85,.22);border-radius:3px;padding:12px 14px;font-size:12px;color:var(--gold-dk);margin-top:16px;line-height:1.6}
+.auth-forgot-link{display:block;text-align:right;font-size:11px;color:var(--ink4);cursor:pointer;margin-top:10px;background:none;border:none;font-family:'Jost',sans-serif;letter-spacing:.04em;padding:0;transition:color .15s}
+.auth-forgot-link:hover{color:var(--gold)}
+.auth-back-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink4);cursor:pointer;background:none;border:none;font-family:'Jost',sans-serif;letter-spacing:.04em;padding:0;margin-top:16px;transition:color .15s}
+.auth-back-link:hover{color:var(--ink)}
+.auth-reset-success{background:#eaf5ee;border:1px solid rgba(26,58,42,.18);border-radius:3px;padding:12px 14px;font-size:12px;color:#1a3a2a;line-height:1.6;display:none;margin-top:4px}
+.auth-reset-success.show{display:block}
+.export-tier-notice{background:var(--gold-lt);border:1px solid rgba(139,115,85,.22);border-radius:4px;padding:12px 16px;font-size:12px;color:var(--gold-dk);margin-bottom:18px;line-height:1.6;display:none}
+.export-tier-notice.show{display:block}
+.export-tier-notice a{color:var(--gold);cursor:pointer;text-decoration:underline}
+
+/* ── Pricing modal ────────────────────────────────────────────── */
+.pricing-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1001;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.pricing-overlay.open{display:flex}
+.pricing-card{background:var(--paper);width:100%;max-width:920px;border-radius:4px;padding:48px 40px 40px;position:relative;margin:auto}
+.pricing-close{position:absolute;top:14px;right:18px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink3);line-height:1}
+.pricing-close:hover{color:var(--ink)}
+.pricing-header{text-align:center;margin-bottom:8px}
+.pricing-title{font-family:'Jost',sans-serif;font-size:24px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+.pricing-sub{font-size:13px;color:var(--ink3);line-height:1.6}
+.pricing-toggle{display:flex;align-items:center;justify-content:center;gap:10px;margin:22px 0 30px}
+.pricing-toggle-btn{padding:8px 22px;border-radius:20px;border:1.5px solid var(--line2);background:transparent;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--ink3);transition:all .15s}
+.pricing-toggle-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pricing-save-badge{background:var(--ink);color:#fff;font-size:11px;font-weight:700;padding:4px 11px;border-radius:10px;letter-spacing:.04em;white-space:nowrap}
+.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:stretch}
+.plan-card{border:1.5px solid var(--line);border-radius:4px;padding:28px 20px 22px;display:flex;flex-direction:column;position:relative}
+.plan-card.featured{border-color:var(--ink);background:var(--ink)}
+.plan-card.featured .plan-name,.plan-card.featured .plan-price{color:#fff}
+.plan-card.featured .plan-tagline,.plan-card.featured .plan-price-sub{color:rgba(255,255,255,.55)}
+.plan-card.featured .plan-save{color:rgba(255,255,255,.65)}
+.plan-card.featured .plan-divider{background:rgba(255,255,255,.15)}
+.plan-card.featured .plan-features li{color:rgba(255,255,255,.8)}
+.plan-card.featured .plan-features li::before{color:#fff}
+.plan-card.featured .plan-features li.na{color:rgba(255,255,255,.3)}
+.plan-card.featured .plan-features li.na::before{color:rgba(255,255,255,.3)}
+.plan-featured-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#fff;color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.12em;padding:4px 14px;border-radius:10px;white-space:nowrap}
+.plan-name{font-family:'Jost',sans-serif;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:4px}
+.plan-tagline{font-size:11px;color:var(--ink3);margin-bottom:14px;line-height:1.4;min-height:30px}
+.plan-price{font-size:28px;font-weight:700;color:var(--ink);line-height:1}
+.plan-price sup{font-size:14px;font-weight:400;vertical-align:super;line-height:0}
+.plan-price-sub{font-size:11px;color:var(--ink3);margin-top:4px;min-height:28px;line-height:1.5}
+.plan-save{font-size:11px;font-weight:600;color:var(--ink3);margin-top:3px;min-height:16px}
+.plan-divider{height:1px;background:var(--line);margin:16px 0}
+.plan-features{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;gap:8px}
+.plan-features li{font-size:12px;color:var(--ink2);line-height:1.5;padding-left:16px;position:relative}
+.plan-features li::before{content:'✓';position:absolute;left:0;color:var(--ink);font-weight:700;font-size:11px}
+.plan-features li.na::before{content:'—';color:var(--ink4)}
+.plan-features li.na{color:var(--ink4)}
+.plan-cta{margin-top:auto;padding:11px 14px;border-radius:3px;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:1.5px solid var(--ink);background:transparent;color:var(--ink);transition:all .15s;width:100%}
+.plan-cta:hover{background:var(--ink);color:#fff}
+.plan-cta.gold{background:#fff;border-color:#fff;color:var(--ink)}
+.plan-cta.gold:hover{background:rgba(255,255,255,.88);border-color:rgba(255,255,255,.88)}
+.plan-cta.muted{border-color:var(--line2);color:var(--ink4);cursor:default;background:transparent}
+.plan-cta.muted:hover{background:transparent;color:var(--ink4)}
+.pricing-notice{text-align:center;font-size:11px;color:var(--ink4);margin-top:22px;line-height:1.7}
+.pricing-msg{display:none;text-align:center;padding:14px 20px;background:var(--gold-lt);border:1px solid rgba(139,115,85,.25);border-radius:3px;font-size:13px;color:var(--gold-dk);margin-top:18px;line-height:1.6}
+.pricing-msg.show{display:block}
+@media(max-width:800px){.pricing-grid{grid-template-columns:1fr 1fr}.pricing-card{padding:40px 20px 30px}}
+@media(max-width:520px){.pricing-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div id="signup-banner" class="signup-banner">
+  <div class="signup-banner-left">
+    <img src="logo-only.jpg" class="signup-banner-logo" alt="Millimetre Architecture">
+    <div class="signup-banner-text">
+      <div class="signup-banner-headline">Create a Free Account — Save Your Profile &amp; Unlock Professional Workflows</div>
+      <div class="signup-banner-sub">Plans from R249/month &nbsp;·&nbsp; No credit card required &nbsp;·&nbsp; Cancel any time</div>
+    </div>
+  </div>
+  <div class="signup-banner-actions">
+    <button class="signup-banner-btn" onclick="authShowModal('signup')">Create Free Account</button>
+  </div>
+</div>
 <div class="shell">
 <aside class="sidebar">
   <div class="sb-brand">
-    <div class="sb-label">Millimetre Architecture</div>
-    <div class="sb-title">Council<br>Form Filler</div>
-    <div class="sb-sub">Building plan submissions · SA</div>
+    <img src="company-logo.png" class="sb-logo" alt="Millimetre Architecture">
+    <div class="sb-sub">Council Form Filler · Building Plans · SA</div>
   </div>
   <nav class="nav">
     <div class="nav-sect">Workflow</div>
@@ -640,10 +859,10 @@ select.pr-edit{
   <select class="project-select" id="project-select" onchange="projectOnSelect()">
     <option value="">— New project —</option>
   </select>
-  <button class="project-btn save" onclick="projectSave()">💾 Save</button>
+  <button class="project-btn save" id="proj-save-btn" onclick="projectSave()">💾 Save</button>
   <button class="project-btn" onclick="projectUpdate()" id="proj-update-btn" style="display:none">↺ Update</button>
   <button class="project-btn danger" onclick="projectDelete()" id="proj-delete-btn" style="display:none">🗑</button>
-  <label class="project-btn" style="cursor:pointer" title="Import a project file from the client intake form">⬆ Import<input type="file" accept=".json" style="display:none" onchange="projectImportFile(this)"></label>
+  <label class="project-btn" id="proj-import-label" style="cursor:pointer" title="Import a project file from the client intake form">⬆ Import<input type="file" accept=".json" style="display:none" onchange="projectImportFile(this)"></label>
   <span class="project-autosave" id="proj-autosave-status"></span>
 </div>
 <header class="topbar">
@@ -651,13 +870,18 @@ select.pr-edit{
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
   </div>
-  <div class="step-track">
-    <div class="step-dot active" id="sd-0"></div>
-    <div class="step-dot" id="sd-1"></div>
-    <div class="step-dot" id="sd-2"></div>
-    <div class="step-dot" id="sd-3"></div>
-    <div class="step-dot" id="sd-4"></div>
-    <div class="step-dot" id="sd-5"></div>
+  <div class="tb-right">
+    <div class="step-track">
+      <div class="step-dot active" id="sd-0"></div>
+      <div class="step-dot" id="sd-1"></div>
+      <div class="step-dot" id="sd-2"></div>
+      <div class="step-dot" id="sd-3"></div>
+      <div class="step-dot" id="sd-4"></div>
+      <div class="step-dot" id="sd-5"></div>
+    </div>
+    <div id="tb-auth">
+      <button class="tb-auth-btn" onclick="authShowModal('login')">Sign in</button>
+    </div>
   </div>
 </header>
 <div class="content">
@@ -670,14 +894,22 @@ select.pr-edit{
   <select class="profile-select" id="profile-select" onchange="profileOnSelect()">
     <option value="">— No profile loaded —</option>
   </select>
-  <button class="profile-btn save" onclick="profileSave()">💾 Save</button>
+  <button class="profile-btn save" id="profile-save-btn" onclick="profileSave()">💾 Save</button>
   <button class="profile-btn" onclick="profileUpdate()" id="profile-update-btn" style="display:none">↺ Update</button>
   <button class="profile-btn danger" onclick="profileDelete()" id="profile-delete-btn" style="display:none">🗑</button>
-  <button class="profile-btn" onclick="profileExport()">⬇ Export</button>
-  <label class="profile-btn" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="profileImport(this)"></label>
+  <button class="profile-btn" id="profile-export-btn" onclick="profileExport()">⬇ Export</button>
+  <label class="profile-btn" id="profile-import-label" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="profileImport(this)"></label>
 </div>
 <div id="profile-modal-container"></div>
 <div id="profile-toast" class="profile-toast"></div>
+<div id="auth-prompt" class="auth-prompt">
+  <div class="auth-prompt-title">Sign up required</div>
+  <div class="auth-prompt-sub" id="auth-prompt-sub"></div>
+  <div class="auth-prompt-actions">
+    <button class="auth-prompt-cta" onclick="authHidePrompt();authShowModal('signup')">Create free account</button>
+    <button class="auth-prompt-dismiss" onclick="authHidePrompt()">Maybe later</button>
+  </div>
+</div>
 
   <div class="section sec-arch">
     <div class="sec-head"><div class="sec-ico">🏛️</div><h2>Architect / Professional Information</h2></div>
@@ -1001,6 +1233,9 @@ select.pr-edit{
     <p id="export-summary">Selected forms · downloads as a ZIP file.</p>
     <div class="notice n-warn" style="margin-bottom:16px"><span>⚠️</span><span><strong>User responsibility notice:</strong> All exported forms must be carefully reviewed before submission. It is the sole responsibility of the user to verify the accuracy, completeness and correctness of all information populated in these forms. Millimetre Architecture accepts no liability for errors, omissions or incorrect information submitted to any authority. Forms are generated based on data entered by the user — always check every field before signing and submitting.</span></div>
     <div id="missing-fields-notice"></div>
+    <div class="export-tier-notice" id="export-tier-notice">
+      You are exporting as a <strong>Free</strong> account — PDFs will include a watermark. <a onclick="pricingShowModal()">Upgrade to Professional</a> for clean, submission-ready exports.
+    </div>
     <button class="btn btn-export" id="export-btn" onclick="exportAll()">⬇ Download all as ZIP</button>
     <div class="file-list" id="file-list"></div>
   </div>
@@ -1678,7 +1913,8 @@ async function exportAll() {
       if (el) el.classList.add('gen');
       if (st) st.textContent = 'Generating…';
       try {
-        const bytes = await executePlugin(p, PDFDocument, d, as, cs);
+        let bytes = await executePlugin(p, PDFDocument, d, as, cs);
+        if (!authIsPaid()) bytes = await addWatermark(bytes, PDFDocument);
         zip.file(pfx + '_' + p.num + '_' + p.title.replace(/[^a-zA-Z0-9]+/g,'_') + '.pdf', bytes);
         if (el) { el.classList.remove('gen'); el.classList.add('done'); }
         if (st) st.textContent = '✓ Done';
@@ -1694,6 +1930,17 @@ async function exportAll() {
     a.href = url; a.download = pfx + '_Council_Forms.zip'; a.click();
     URL.revokeObjectURL(url);
     btn.textContent = '✓ Downloaded';
+    // Log export to Supabase for admin analytics (fire-and-forget — never blocks download)
+    if (_authUser) {
+      _sb.from('exports').insert({
+        user_id: _authUser.id,
+        forms: sel.map(p => p.id),
+        municipality: d.proj_municipality || null,
+        tier: authTier(),
+        watermarked: !authIsPaid(),
+        form_count: sel.length
+      }).then(()=>{}).catch(()=>{});
+    }
   } catch(e) {
     btn.disabled = false; btn.textContent = '⬇ Download all as ZIP';
     alert('Error: ' + e.message); console.error(e);
@@ -1974,6 +2221,15 @@ function clearSig(who){
 }
 function loadSigFile(who,input){
   const file=input.files[0];if(!file)return;
+  const allowed=['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml'];
+  if(!allowed.includes(file.type)){
+    alert('Please upload an image file (PNG, JPG, or GIF).');
+    input.value=''; return;
+  }
+  if(file.size>5*1024*1024){
+    alert('Signature image must be under 5 MB.');
+    input.value=''; return;
+  }
   const r=new FileReader();
   r.onload=e=>{
     SIG[who].dataUrl=e.target.result;
@@ -2211,7 +2467,30 @@ function projectOnSelect() {
   startAutoSave();
 }
 
+function requireAuth(action) {
+  if (_authUser) return true;
+  authShowPrompt(action);
+  return false;
+}
+
+let _authPromptTimer = null;
+function authShowPrompt(action) {
+  const sub = document.getElementById('auth-prompt-sub');
+  if (sub) sub.textContent = `Create a free account to ${action}.`;
+  const el = document.getElementById('auth-prompt');
+  if (!el) return;
+  clearTimeout(_authPromptTimer);
+  el.classList.add('show');
+  _authPromptTimer = setTimeout(authHidePrompt, 5000);
+}
+function authHidePrompt() {
+  clearTimeout(_authPromptTimer);
+  const el = document.getElementById('auth-prompt');
+  if (el) el.classList.remove('show');
+}
+
 function projectSave() {
+  if (!requireAuth('save projects')) return;
   profileModal({
     title:        'Save project',
     body:         'Enter a name for this project. Client name and ERF number work well.',
@@ -2234,6 +2513,7 @@ function projectSave() {
 }
 
 function projectUpdate() {
+  if (!requireAuth('save projects')) return;
   const name = projectGetActive();
   if (!name) { profileToast('⚠ No project selected', true); return; }
   const projects = projectGetAll();
@@ -2268,8 +2548,10 @@ function projectDelete() {
 
 // ── Auto-save ─────────────────────────────────────────────────────
 function startAutoSave() {
+  if (!_authUser) return; // anonymous sessions are not persisted
   stopAutoSave();
   _projectAutoSaveTimer = setInterval(() => {
+    if (!_authUser) { stopAutoSave(); return; } // stop if user logs out mid-session
     const name = projectGetActive();
     if (!name) return;
     const projects = projectGetAll();
@@ -2287,6 +2569,7 @@ function stopAutoSave() {
 
 // ── Import project from client intake JSON file ───────────────────
 function projectImportFile(input) {
+  if (!requireAuth('import projects')) { input.value = ''; return; }
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
@@ -2327,6 +2610,7 @@ function projectImportFile(input) {
 
 // ── Init ──────────────────────────────────────────────────────────
 function projectInit() {
+  if (!_authUser) return; // anonymous users have no persistent projects
   const projects = projectGetAll();
   const active   = projectGetActive();
   projectRebuildSelect(active);
@@ -2452,6 +2736,7 @@ function profileOnSelect() {
 
 // Save new profile — prompts for name
 function profileSave() {
+  if (!requireAuth('save profiles')) return;
   profileModal({
     title: 'Save architect profile',
     body: 'Enter a name for this profile. It will store all fields in the Architect / Professional section.',
@@ -2539,25 +2824,34 @@ function profileExport() {
 
 // Import profiles from a JSON file
 function profileImport(input) {
+  if (!requireAuth('import profiles')) { input.value = ''; return; }
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
+      if (e.target.result.length > 200 * 1024) throw new Error('File too large');
       const imported = JSON.parse(e.target.result);
       if (typeof imported !== 'object' || Array.isArray(imported)) throw new Error('Invalid format');
       // Validate: each key must contain at least one architect field
       const validKeys = Object.keys(imported).filter(k =>
-        typeof imported[k] === 'object' &&
+        typeof imported[k] === 'object' && !Array.isArray(imported[k]) &&
         PROFILE_FIELDS.some(f => f in imported[k])
       );
       if (!validKeys.length) throw new Error('No valid profiles found');
+      if (validKeys.length > 50) throw new Error('Too many profiles in file (max 50)');
       const existing = profileGetAll();
+      if (Object.keys(existing).length + validKeys.length > 100) throw new Error('Profile limit reached (max 100)');
       let replaced = 0, added = 0;
       validKeys.forEach(name => {
+        // Sanitize: only carry over known profile fields, discard any extra keys
+        const clean = {};
+        PROFILE_FIELDS.forEach(f => {
+          if (typeof imported[name][f] === 'string') clean[f] = imported[name][f].slice(0, 500);
+        });
         if (existing[name]) replaced++;
         else added++;
-        existing[name] = imported[name];
+        existing[name] = clean;
       });
       profileSetAll(existing);
       profileRebuildSelect(profileGetActive());
@@ -2668,12 +2962,743 @@ async function downloadBlankPDF(id, filename, btn) {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════
+//  GUIDED TOUR
+// ════════════════════════════════════════════════════════════════════
+
+const TOUR_STEPS = [
+  {
+    tab: 0,
+    target: '.sec-arch',
+    title: 'Your practice details',
+    body: 'Fill in your architect information once. Your name, SACAP number, practice name, and address auto-populate into every council form — no retyping.',
+    cardPos: 'right',
+  },
+  {
+    tab: 0,
+    target: '.sec-client',
+    title: 'Client details',
+    body: 'Enter your client\'s information here — or send them an intake link and their details arrive automatically, pre-filled and ready to review.',
+    cardPos: 'right',
+  },
+  {
+    tab: 0,
+    target: '.sec-proj',
+    title: 'Project information',
+    body: 'ERF number, township, municipality, project class — the fields councils actually care about. Change one field and every form updates.',
+    cardPos: 'right',
+  },
+  {
+    tab: 1,
+    target: '#tab-1',
+    title: 'Signatures',
+    body: 'Draw your architect signature and your client\'s signature once. They are embedded into every form that requires them, correctly positioned.',
+    cardPos: 'right',
+  },
+  {
+    tab: 3,
+    target: '#forms-container',
+    title: 'Select your forms',
+    body: 'Choose exactly which council forms to include. COJ, SACAP, SANS, POA, A19, Company Resolution, PHRAG — only the ones relevant to your project.',
+    cardPos: 'right',
+  },
+  {
+    tab: 5,
+    target: '.export-card',
+    title: 'Export as a ZIP',
+    body: 'One click exports all selected forms as a filled, submission-ready ZIP. What used to take 2 hours takes 4 minutes. Create a free account to save your profile and projects — then upgrade for clean professional exports.',
+    cardPos: 'right',
+    isFinal: true,
+  },
+];
+
+let _tourStep    = 0;
+let _tourActive  = false;
+let _tourTimeout = null;
+let _tourShown   = false;
+
+function _tourStopScroll(e) { e.preventDefault(); }
+function _tourStopKeys(e) {
+  if (['ArrowDown','ArrowUp','Space','PageDown','PageUp','Home','End'].includes(e.code)) e.preventDefault();
+}
+
+function tourShouldShow() {
+  if (_tourShown) return false;
+  // Anonymous: show every page load (no account to persist state)
+  if (!_authUser) return true;
+  // Logged in: show once until onboarding_complete
+  if (_authProfile && !_authProfile.onboarding_complete) return true;
+  return false;
+}
+
+function tourStart() {
+  if (!tourShouldShow()) return;
+  // onAuthStateChange fires as a microtask before the browser parses the tour HTML
+  // (which sits after </script>). Guard here and re-queue once the DOM is ready.
+  if (!document.getElementById('tour-overlay')) {
+    document.addEventListener('DOMContentLoaded', tourStart, { once: true });
+    return;
+  }
+  _tourShown  = true;
+  _tourStep   = 0;
+  _tourActive = true;
+  document.getElementById('tour-spotlight').style.display = 'none';
+  document.getElementById('tour-card').style.cssText = '';
+  document.getElementById('tour-overlay').classList.add('active');
+  // Block page scroll while tour is active (overlay is pass-through, so use document)
+  document.addEventListener('wheel',     _tourStopScroll, { passive: false });
+  document.addEventListener('touchmove', _tourStopScroll, { passive: false });
+  window.addEventListener('keydown', _tourStopKeys);
+  tourRender();
+}
+
+function tourSkip() {
+  tourEnd(false);
+}
+
+function tourAnonContinue() {
+  tourEnd(true); // mark complete so onboarding_complete fires if logged in; no signup prompt
+}
+
+async function tourEnd(completed) {
+  _tourActive = false;
+  if (_tourTimeout) { clearTimeout(_tourTimeout); _tourTimeout = null; }
+  const overlay = document.getElementById('tour-overlay');
+  overlay.classList.remove('active');
+  document.removeEventListener('wheel',     _tourStopScroll);
+  document.removeEventListener('touchmove', _tourStopScroll);
+  window.removeEventListener('keydown', _tourStopKeys);
+  document.getElementById('tour-spotlight').style.display = 'none';
+  document.getElementById('tour-card').style.cssText = '';
+  if (completed && _authUser && _authProfile && !_authProfile.onboarding_complete) {
+    await _sb.from('profiles').update({ onboarding_complete: true }).eq('id', _authUser.id);
+    _authProfile.onboarding_complete = true;
+  }
+}
+
+function tourNext() {
+  if (_tourStep >= TOUR_STEPS.length - 1) {
+    tourEnd(true);
+    if (!_authUser) authShowModal('signup');
+    return;
+  }
+  _tourStep++;
+  tourRender();
+}
+
+function tourPrev() {
+  if (_tourStep > 0) { _tourStep--; tourRender(); }
+}
+
+function tourRender() {
+  const step = TOUR_STEPS[_tourStep];
+  const total = TOUR_STEPS.length;
+
+  // Navigate to the right tab
+  goTab(step.tab);
+
+  // Update card content
+  document.getElementById('tour-step-label').textContent = `Step ${_tourStep + 1} of ${total}`;
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-body').textContent  = step.body;
+
+  // Progress dots
+  const prog = document.getElementById('tour-progress');
+  prog.innerHTML = TOUR_STEPS.map((_,i) =>
+    `<div class="tour-dot ${i < _tourStep ? 'done' : i === _tourStep ? 'active' : ''}"></div>`
+  ).join('');
+
+  // Prev/Next buttons
+  document.getElementById('tour-prev-btn').style.display = _tourStep === 0 ? 'none' : '';
+  const nextBtn = document.getElementById('tour-next-btn');
+  nextBtn.textContent = step.isFinal ? (_authUser ? 'Done' : 'Create free account →') : 'Next →';
+
+  // Cancel any pending spotlight from a previous step, then wait for tab animation
+  if (_tourTimeout) clearTimeout(_tourTimeout);
+  _tourTimeout = setTimeout(() => tourSpotlight(step.target, step.cardPos), 320);
+}
+
+function tourSpotlight(selector, cardPos) {
+  const el = document.querySelector(selector);
+  const spot = document.getElementById('tour-spotlight');
+  const card = document.getElementById('tour-card');
+  if (!el) { card.style.display = 'block'; return; }
+
+  el.scrollIntoView({ behavior: 'instant', block: 'center' });
+
+  requestAnimationFrame(() => {
+    const rect = el.getBoundingClientRect();
+    const pad  = 10;
+    const vw   = window.innerWidth;
+    const vh   = window.innerHeight;
+
+    // Place spotlight
+    spot.style.display = 'block';
+    spot.style.left    = (rect.left - pad) + 'px';
+    spot.style.top     = (rect.top  - pad) + 'px';
+    spot.style.width   = (rect.width  + pad * 2) + 'px';
+    spot.style.height  = (rect.height + pad * 2) + 'px';
+
+    // Place card — right of spotlight unless it clips, then below centered
+    const cardW = 320;
+    const cardH = 270;
+    let cl, ct;
+
+    if (cardPos === 'right') {
+      // Always right side — next to spotlight if room, otherwise pinned to right edge
+      cl = (rect.right + 24 + cardW < vw - 8) ? rect.right + 24 : vw - cardW - 32;
+      ct = Math.min(Math.max(rect.top - pad, 80), vh - cardH - 16);
+    } else {
+      // Centered horizontally, below the spotlight
+      cl = Math.max(16, Math.round((vw - cardW) / 2));
+      ct = rect.bottom + pad + 16;
+      if (ct + cardH > vh - 16) ct = Math.max(80, rect.top - pad - cardH - 16);
+    }
+
+    card.style.left    = cl + 'px';
+    card.style.top     = ct + 'px';
+    card.style.width   = cardW + 'px';
+    card.style.display = 'block';
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  SUPABASE AUTH
+// ════════════════════════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://hzqwiqeblgudsrwtgajb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_TRXh3ZIsPkMosZ2RYJeWxw_z45MbVQP';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let _authUser    = null;
+let _authProfile = null;
+
+function authTier()   { return _authProfile?.subscription_tier || 'free'; }
+function authIsPaid() { return ['professional','firm'].includes(authTier()); }
+
+// ── Modal controls ───────────────────────────────────────────────
+function authShowModal(tab) {
+  authSwitchTab(tab || 'login');
+  document.getElementById('auth-overlay').classList.add('open');
+  setTimeout(() => {
+    const focusMap = { signup: 'auth-email-signup', reset: 'auth-email-reset', newpass: 'auth-pass-new' };
+    const el = document.getElementById(focusMap[tab] || 'auth-email-login');
+    if (el) el.focus();
+  }, 60);
+}
+function authHideModal() {
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.getElementById('auth-error').classList.remove('show');
+}
+function authOverlayClick(e) {
+  if (e.target === document.getElementById('auth-overlay')) authHideModal();
+}
+function authSwitchTab(tab) {
+  const forms = ['login','signup','reset','newpass'];
+  forms.forEach(f => {
+    const el = document.getElementById('auth-form-' + f);
+    if (el) el.style.display = (f === tab) ? '' : 'none';
+  });
+  const tabs = document.getElementById('auth-tabs');
+  if (tabs) tabs.style.display = (tab === 'login' || tab === 'signup') ? '' : 'none';
+  document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('auth-error').classList.remove('show');
+  const subs = {
+    login:   'Welcome back — your projects and exports are waiting.',
+    signup:  'Save your practice profile, projects, and workflow progress.',
+    reset:   'Enter your email and we\'ll send you a secure reset link.',
+    newpass: 'Choose a strong new password for your account.',
+  };
+  const sub = document.getElementById('auth-sub');
+  if (sub) sub.textContent = subs[tab] || '';
+}
+
+// ── Sign in ──────────────────────────────────────────────────────
+async function authLogin() {
+  const email = document.getElementById('auth-email-login').value.trim();
+  const pass  = document.getElementById('auth-pass-login').value;
+  if (!email || !pass) { authShowError('Please enter your email and password.'); return; }
+  const btn = document.getElementById('auth-btn-login');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  // Guard against the request hanging (e.g. paused Supabase free-tier project)
+  let done = false;
+  const timer = setTimeout(() => {
+    if (done) return;
+    done = true;
+    btn.disabled = false; btn.textContent = 'Sign in';
+    authShowError('Sign-in timed out — please check your connection and try again.');
+  }, 12000);
+  try {
+    const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    if (error) { authShowError(error.message); return; }
+    authHideModal();
+  } catch(e) {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    authShowError('Connection error — please check your internet connection and try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+// ── Sign up ──────────────────────────────────────────────────────
+async function authSignup() {
+  const email   = document.getElementById('auth-email-signup').value.trim();
+  const pass    = document.getElementById('auth-pass-signup').value;
+  const confirm = document.getElementById('auth-pass-confirm').value;
+  if (!email || !pass) { authShowError('Please enter your email and password.'); return; }
+  if (pass.length < 6) { authShowError('Password must be at least 6 characters.'); return; }
+  if (pass !== confirm) { authShowError('Passwords do not match.'); return; }
+  const btn = document.getElementById('auth-btn-signup');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  // Snapshot all filled data so it survives the email-confirmation page reload
+  try {
+    const draft = projectReadData();
+    draft._archFields = {};
+    PROFILE_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value) draft._archFields[id] = el.value;
+    });
+    localStorage.setItem('cfaf_anon_draft', JSON.stringify(draft));
+  } catch(e) {}
+  try {
+    const { error } = await _sb.auth.signUp({ email, password: pass });
+    if (error) { localStorage.removeItem('cfaf_anon_draft'); authShowError(error.message); return; }
+    authHideModal();
+    alert('Account created. Check your email to confirm your address, then sign in.');
+  } catch(e) {
+    localStorage.removeItem('cfaf_anon_draft');
+    authShowError('Connection error — please check your internet connection and try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create account';
+  }
+}
+
+// ── Sign out ─────────────────────────────────────────────────────
+async function authLogout() {
+  await _sb.auth.signOut();
+}
+
+// ── Forgot password — send reset email ───────────────────────────
+async function authSendReset() {
+  const email = document.getElementById('auth-email-reset').value.trim();
+  if (!email) { authShowError('Please enter your email address.'); return; }
+  const btn = document.getElementById('auth-btn-reset');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const redirectTo = window.location.href.split('#')[0];
+  const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo });
+  btn.disabled = false; btn.textContent = 'Send reset link';
+  if (error) { authShowError(error.message); return; }
+  document.getElementById('auth-reset-fields').style.display = 'none';
+  document.getElementById('auth-reset-success').classList.add('show');
+}
+
+// ── Set new password (called after PASSWORD_RECOVERY redirect) ───
+async function authUpdatePassword() {
+  const pass    = document.getElementById('auth-pass-new').value;
+  const confirm = document.getElementById('auth-pass-new-confirm').value;
+  if (!pass || pass.length < 6) { authShowError('Password must be at least 6 characters.'); return; }
+  if (pass !== confirm) { authShowError('Passwords do not match.'); return; }
+  const btn = document.getElementById('auth-btn-newpass');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  const { error } = await _sb.auth.updateUser({ password: pass });
+  btn.disabled = false; btn.textContent = 'Update password';
+  if (error) { authShowError(error.message); return; }
+  authHideModal();
+  profileToast('✓ Password updated — you are now signed in.');
+}
+
+function authShowError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.classList.add('show');
+}
+function authTogglePass(inputId, btn) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.textContent = show ? '🙈' : '👁';
+}
+
+// ── Load profile from Supabase ───────────────────────────────────
+async function authLoadProfile(userId) {
+  const { data } = await _sb.from('profiles').select('*').eq('id', userId).single();
+  return data || null;
+}
+
+// ── Apply profile fields into the form ───────────────────────────
+function authApplyProfile(profile) {
+  if (!profile) return;
+  PROFILE_FIELDS.forEach(id => {
+    if (profile[id] == null || profile[id] === '') return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = profile[id];
+    el.dispatchEvent(new Event('change'));
+  });
+}
+
+// ── Update auth UI (banner + topbar + export notice) ─────────────
+function authUpdateUI() {
+  const banner  = document.getElementById('signup-banner');
+  const tbAuth  = document.getElementById('tb-auth');
+  const notice  = document.getElementById('export-tier-notice');
+
+  const _gatedEls = ['proj-save-btn','proj-import-label','profile-save-btn','profile-export-btn','profile-import-label'];
+  _gatedEls.forEach(id => { const el = document.getElementById(id); if (el) el.classList.toggle('auth-gated', !_authUser); });
+
+  if (!_authUser) {
+    if (banner) banner.classList.remove('hidden');
+    if (tbAuth) tbAuth.innerHTML = `<button class="tb-auth-btn" onclick="authShowModal('login')">Sign in</button>`;
+    if (notice) {
+      notice.innerHTML = `<strong>Demo mode</strong> — exports include a preview watermark. <a onclick="authShowModal('signup')">Create a free account</a> to save your profile, projects, and workflow — then <a onclick="pricingShowModal()">upgrade from R249/month</a> for clean professional exports.`;
+      notice.classList.add('show');
+    }
+    return;
+  }
+
+  // Logged in — hide banner, show user info in topbar
+  if (banner) banner.classList.add('hidden');
+
+  // Export notice: paid = hidden; free registered = watermark with upgrade prompt
+  if (notice) {
+    if (authIsPaid()) {
+      notice.classList.remove('show');
+    } else {
+      notice.innerHTML = `<strong>Free account</strong> — exports include a preview watermark.
+        <a onclick="pricingShowModal()">Upgrade from R249/month</a> for clean, submission-ready professional exports.`;
+      notice.classList.add('show');
+    }
+  }
+
+  if (tbAuth) {
+    const tier   = authTier();
+    const email  = _authUser.email || '';
+    const short  = email.length > 24 ? email.slice(0,22) + '…' : email;
+    const labels = { free:'Free', professional:'Professional', firm:'Firm' };
+    const upgradeBtn = tier === 'free'
+      ? `<button class="tb-auth-upgrade" onclick="pricingShowModal()">Upgrade</button>`
+      : '';
+    const adminBtn = _authProfile?.is_admin
+      ? `<button class="tb-auth-admin" onclick="adminOpen()">Admin</button>`
+      : '';
+    tbAuth.innerHTML = `
+      <div class="tb-auth-user">
+        ${adminBtn}
+        ${upgradeBtn}
+        <span class="tb-auth-email">${short}</span>
+        <span class="tb-auth-tier ${tier}">${labels[tier] || tier}</span>
+        <button class="tb-auth-signout" onclick="authLogout()">Sign out</button>
+      </div>`;
+  }
+}
+
+// ── Auth state listener (fires on login, logout, page load) ──────
+_sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    authShowModal('newpass');
+    return;
+  }
+  _authUser = session?.user || null;
+  if (_authUser) {
+    // Restore anonymous draft if present (survives email-confirmation page reload)
+    const raw = localStorage.getItem('cfaf_anon_draft');
+    if (raw) {
+      try {
+        const draft = JSON.parse(raw);
+        projectWriteData(draft);
+        if (draft._archFields) {
+          PROFILE_FIELDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && draft._archFields[id]) { el.value = draft._archFields[id]; el.dispatchEvent(new Event('change')); }
+          });
+        }
+      } catch(e) {}
+      localStorage.removeItem('cfaf_anon_draft');
+    }
+    try {
+      _authProfile = await authLoadProfile(_authUser.id);
+      authApplyProfile(_authProfile);
+    } catch(e) {
+      _authProfile = null;
+    }
+  } else {
+    _authProfile = null;
+  }
+  authUpdateUI();
+  tourStart();
+});
+
+// ── First-time onboarding prompt ─────────────────────────────────
+function authShowOnboarding() {
+  goTab(0);
+  setTimeout(() => {
+    const el = document.getElementById('arch_name');
+    if (el && !el.value) {
+      el.focus();
+      profileToast('Welcome — fill in your practice details above, then save as a profile.', false);
+    }
+  }, 400);
+}
+
+// ── Watermark helper ─────────────────────────────────────────────
+async function addWatermark(bytes, PDFDocument) {
+  const { StandardFonts, rgb, degrees } = PDFLib;
+  const doc  = await PDFDocument.load(bytes);
+  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+  for (const page of doc.getPages()) {
+    const { width, height } = page.getSize();
+    page.drawText('PREVIEW - NOT FOR SUBMISSION', {
+      x: width / 2 - 195,
+      y: height / 2 - 20,
+      size: 34,
+      opacity: 0.11,
+      rotate: degrees(45),
+      color: rgb(0.75, 0, 0),
+      font,
+    });
+  }
+  return await doc.save();
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ADMIN ANALYTICS PANEL
+//  Only opens when profiles.is_admin = true for the signed-in user.
+//  RLS on the exports table ensures only the admin can SELECT data.
+// ════════════════════════════════════════════════════════════════════
+
+async function adminOpen() {
+  if (!_authUser) return;
+  // Re-verify is_admin server-side every time the panel is opened.
+  // Even if someone edits _authProfile in DevTools, Supabase RLS will
+  // reject their query and the panel will show an error — not data.
+  const { data: check } = await _sb.from('profiles')
+    .select('is_admin').eq('id', _authUser.id).single();
+  if (!check?.is_admin) return;
+  document.getElementById('adm-overlay').classList.add('open');
+  adminLoadStats();
+}
+
+function adminClose() {
+  document.getElementById('adm-overlay').classList.remove('open');
+}
+
+function adminOverlayClick(e) {
+  if (e.target === document.getElementById('adm-overlay')) adminClose();
+}
+
+async function adminLoadStats() {
+  const el = document.getElementById('adm-content');
+  el.innerHTML = `<div style="padding:48px;text-align:center;color:var(--ink3);font-size:13px">Loading…</div>`;
+  try {
+    const [exRes, userRes] = await Promise.all([
+      _sb.from('exports').select('*').order('created_at', { ascending: false }),
+      _sb.from('profiles').select('id', { count: 'exact', head: true })
+    ]);
+    if (exRes.error) throw exRes.error;
+
+    const rows = exRes.data || [];
+    const now  = Date.now();
+    const D30  = rows.filter(r => new Date(r.created_at) > new Date(now - 30*24*60*60*1000));
+    const D7   = rows.filter(r => new Date(r.created_at) > new Date(now -  7*24*60*60*1000));
+    const uniqueExporters = new Set(rows.map(r => r.user_id).filter(Boolean)).size;
+
+    const tierCounts = {};
+    rows.forEach(r => { const t = r.tier||'free'; tierCounts[t] = (tierCounts[t]||0)+1; });
+
+    const muniCounts = {};
+    rows.forEach(r => { if (r.municipality) muniCounts[r.municipality] = (muniCounts[r.municipality]||0)+1; });
+
+    const FORM_LABELS = { coj:'COJ Application', sacap:'SACAP Certificate', sans:'SANS 10400',
+      company_res:'Company Resolution', poa:'Power of Attorney', a19:'A19 Agreement', phrag:'PHRAG Heritage' };
+    const formCounts = {};
+    rows.forEach(r => { (r.forms||[]).forEach(f => { formCounts[f] = (formCounts[f]||0)+1; }); });
+    const formsSorted = Object.entries(formCounts).sort((a,b) => b[1]-a[1]);
+
+    const watermarked = rows.filter(r =>  r.watermarked).length;
+    const clean       = rows.filter(r => !r.watermarked).length;
+
+    el.innerHTML = adminRender({
+      total: rows.length,
+      totalUsers: userRes.count || 0,
+      last30: D30.length, last7: D7.length,
+      uniqueExporters, tierCounts, muniCounts,
+      formsSorted, FORM_LABELS,
+      watermarked, clean,
+      recent: rows.slice(0, 30)
+    });
+  } catch(e) {
+    el.innerHTML = `<div style="padding:48px;color:var(--red);font-size:13px">Error loading stats: ${e.message}</div>`;
+  }
+}
+
+function adminRender({ total, totalUsers, last30, last7, uniqueExporters,
+    tierCounts, muniCounts, formsSorted, FORM_LABELS, watermarked, clean, recent }) {
+
+  const pct = (n, d) => (d ? Math.round(n / d * 100) : 0);
+
+  const bar = (n, max, color) => `
+    <div class="adm-bar-track">
+      <div class="adm-bar-fill" style="width:${max ? pct(n,max) : 0}%;background:${color}"></div>
+    </div>`;
+
+  const fmt = d => new Date(d).toLocaleDateString('en-ZA',
+    { day:'2-digit', month:'short', year:'numeric' });
+  const fmtT = d => new Date(d).toLocaleTimeString('en-ZA',
+    { hour:'2-digit', minute:'2-digit' });
+
+  const tierMax = Math.max(...Object.values(tierCounts), 1);
+  const muniMax = Math.max(...Object.values(muniCounts), 1);
+  const formMax = formsSorted.length ? formsSorted[0][1] : 1;
+
+  const tierRows = [
+    ['professional', 'Professional', 'var(--gold)'],
+    ['firm',         'Firm',         'var(--green)'],
+    ['free',         'Free',         'var(--ink4)'],
+  ].map(([k, label, color]) => `
+    <div class="adm-bar-row">
+      <div class="adm-bar-label">${label}</div>
+      ${bar(tierCounts[k]||0, tierMax, color)}
+      <div class="adm-bar-count">${tierCounts[k]||0}</div>
+    </div>`).join('');
+
+  const muniRows = Object.entries(muniCounts).sort((a,b) => b[1]-a[1])
+    .map(([k, v]) => `
+    <div class="adm-bar-row">
+      <div class="adm-bar-label">${k}</div>
+      ${bar(v, muniMax, 'var(--c-proj)')}
+      <div class="adm-bar-count">${v}</div>
+    </div>`).join('') || `<div class="adm-empty">No data yet</div>`;
+
+  const formRows = formsSorted.map(([id, count]) => `
+    <div class="adm-bar-row">
+      <div class="adm-bar-label">${FORM_LABELS[id]||id}</div>
+      ${bar(count, formMax, 'var(--c-client)')}
+      <div class="adm-bar-count">${count}</div>
+    </div>`).join('') || `<div class="adm-empty">No data yet</div>`;
+
+  const recentRows = recent.map(r => `
+    <tr>
+      <td>${fmt(r.created_at)}</td>
+      <td style="color:var(--ink3)">${fmtT(r.created_at)}</td>
+      <td><span class="adm-badge ${r.tier||'free'}">${r.tier||'free'}</span></td>
+      <td>${r.municipality||'—'}</td>
+      <td style="font-size:11px;color:var(--ink3)">${(r.forms||[]).map(f=>FORM_LABELS[f]||f).join(', ')||'—'}</td>
+      <td>${r.watermarked
+        ? '<span style="color:var(--ink4)">Watermarked</span>'
+        : '<span style="color:var(--green);font-weight:500">Clean</span>'}</td>
+    </tr>`).join('') ||
+    `<tr><td colspan="6" class="adm-empty" style="text-align:center">No exports recorded yet</td></tr>`;
+
+  return `
+    <div class="adm-section">
+      <div class="adm-section-title">Overview</div>
+      <div class="adm-stat-grid">
+        <div class="adm-stat"><div class="adm-stat-num">${total}</div><div class="adm-stat-lbl">Total exports</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${last30}</div><div class="adm-stat-lbl">Exports — last 30 days</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${last7}</div><div class="adm-stat-lbl">Exports — last 7 days</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${totalUsers}</div><div class="adm-stat-lbl">Registered users</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${uniqueExporters}</div><div class="adm-stat-lbl">Users who've exported</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${clean}</div><div class="adm-stat-lbl">Clean exports</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${watermarked}</div><div class="adm-stat-lbl">Watermarked exports</div></div>
+        <div class="adm-stat"><div class="adm-stat-num">${total ? pct(clean,total) + '%' : '—'}</div><div class="adm-stat-lbl">Paid conversion rate</div></div>
+      </div>
+    </div>
+
+    <div class="adm-section">
+      <div class="adm-section-title">Breakdown</div>
+      <div class="adm-cols">
+        <div>
+          <div class="adm-section-title" style="margin-bottom:12px">By subscription tier</div>
+          ${tierRows}
+        </div>
+        <div>
+          <div class="adm-section-title" style="margin-bottom:12px">By municipality</div>
+          ${muniRows}
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-section">
+      <div class="adm-section-title">Most exported forms</div>
+      ${formRows}
+    </div>
+
+    <div class="adm-section">
+      <div class="adm-section-title">Recent exports (last 30)</div>
+      <div style="overflow-x:auto">
+        <table class="adm-tbl">
+          <thead><tr>
+            <th>Date</th><th>Time</th><th>Tier</th><th>Municipality</th><th>Forms</th><th>Quality</th>
+          </tr></thead>
+          <tbody>${recentRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PRICING MODAL
+// ══════════════════════════════════════════════════════════════════
+let _pricingBilling = 'annual';
+
+function pricingShowModal() {
+  document.getElementById('pricing-overlay').classList.add('open');
+  pricingSetBilling('annual');
+  document.getElementById('pricing-msg').classList.remove('show');
+}
+
+function pricingHideModal() {
+  document.getElementById('pricing-overlay').classList.remove('open');
+}
+
+function pricingOverlayClick(e) {
+  if (e.target === document.getElementById('pricing-overlay')) pricingHideModal();
+}
+
+function pricingSetBilling(type) {
+  _pricingBilling = type;
+  document.getElementById('ptog-monthly').classList.toggle('active', type === 'monthly');
+  document.getElementById('ptog-annual').classList.toggle('active', type === 'annual');
+
+  if (type === 'annual') {
+    document.getElementById('pro-price').innerHTML  = '<sup>R</sup>199<span style="font-size:16px;font-weight:400">/mo</span>';
+    document.getElementById('pro-billing').textContent = 'Billed R2,390/year';
+    document.getElementById('pro-save').textContent   = 'Save R598 vs monthly';
+    document.getElementById('firm-price').innerHTML  = '<sup>R</sup>479<span style="font-size:16px;font-weight:400">/mo</span>';
+    document.getElementById('firm-billing').textContent = 'Billed R5,750/year';
+    document.getElementById('firm-save').textContent   = 'Save R1,438 vs monthly';
+  } else {
+    document.getElementById('pro-price').innerHTML  = '<sup>R</sup>249<span style="font-size:16px;font-weight:400">/mo</span>';
+    document.getElementById('pro-billing').textContent = 'Billed monthly';
+    document.getElementById('pro-save').textContent   = '';
+    document.getElementById('firm-price').innerHTML  = '<sup>R</sup>599<span style="font-size:16px;font-weight:400">/mo</span>';
+    document.getElementById('firm-billing').textContent = 'Billed monthly';
+    document.getElementById('firm-save').textContent   = '';
+  }
+}
+
+function upgradeSelect(tier) {
+  if (!_authUser) {
+    pricingHideModal();
+    authShowModal('signup');
+    return;
+  }
+  // PayFast integration will go here — for now show contact message
+  const msg = document.getElementById('pricing-msg');
+  const names = { pack:'Submission Pack', professional:'Professional', firm:'Firm' };
+  msg.innerHTML = `<strong>Thanks for your interest in ${names[tier]}!</strong><br>
+    Payment is being set up. In the meantime, email us at <a href="mailto:hello@millimetre.co.za" style="color:var(--gold-dk)">hello@millimetre.co.za</a> to get early access.`;
+  msg.classList.add('show');
+}
+
 // ── INIT ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
-  // Verify DOM structure
-  const panels=document.querySelectorAll('.tab-panel');
-  console.log(`Tab panels: ${panels.length} (expected 6)`);
-  panels.forEach((p,i)=>console.log(`  Panel ${i}: id=${p.id}`));
 
   // Heritage hidden input → sync checkbox and section visibility when project is loaded
   const heritageHidden = document.getElementById('proj_heritage');
@@ -2689,6 +3714,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
 
+  // Apply anonymous UI state immediately — no flash before Supabase fires
+  authUpdateUI();
+
   // Run all initialisers after DOM is ready
   renderPOA();
   renderForms();
@@ -2696,7 +3724,187 @@ document.addEventListener('DOMContentLoaded',()=>{
   projectInit();
   loadPDFs().catch(()=>{});
   goTab(0);
+  tourStart(); // fallback: runs if onAuthStateChange fired before this HTML was parsed
 });
 </script>
+
+<!-- ═══ GUIDED TOUR ═══ -->
+<div id="tour-overlay" class="tour-overlay">
+  <div id="tour-spotlight" class="tour-spotlight"></div>
+  <div id="tour-card" class="tour-card">
+    <div class="tour-step-label" id="tour-step-label">Step 1 of 6</div>
+    <h3 id="tour-title"></h3>
+    <p id="tour-body"></p>
+    <div class="tour-progress" id="tour-progress"></div>
+    <div style="height:14px"></div>
+    <div class="tour-actions">
+      <button class="tour-skip" id="tour-skip-btn" onclick="tourSkip()">Skip tour</button>
+      <div class="tour-btns">
+        <button class="tour-btn secondary" id="tour-prev-btn" onclick="tourPrev()">Back</button>
+        <button class="tour-btn primary" id="tour-next-btn" onclick="tourNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ AUTH MODAL ═══ -->
+<div class="auth-overlay" id="auth-overlay" onclick="authOverlayClick(event)">
+  <div class="auth-card">
+    <button class="auth-close" onclick="authHideModal()">×</button>
+    <div class="auth-logo-header"><img src="company-logo.png" alt="Millimetre Architecture"></div>
+    <div class="auth-title">Council Form Filler</div>
+    <div class="auth-sub" id="auth-sub">Save your practice profile, projects, and workflow progress.</div>
+    <div class="auth-tabs" id="auth-tabs">
+      <div class="auth-tab active" id="auth-tab-login" onclick="authSwitchTab('login')">Sign in</div>
+      <div class="auth-tab" id="auth-tab-signup" onclick="authSwitchTab('signup')">Create account</div>
+    </div>
+    <div id="auth-form-login">
+      <div class="auth-field"><label>Email</label><input type="email" id="auth-email-login" placeholder="your@email.com" onkeydown="if(event.key==='Enter')authLogin()"></div>
+      <div class="auth-field"><label>Password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-login" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-login',this)" tabindex="-1">👁</button></div></div>
+      <button class="auth-submit" id="auth-btn-login" onclick="authLogin()">Sign in</button>
+      <button type="button" class="auth-forgot-link" onclick="authSwitchTab('reset')">Forgot your password?</button>
+    </div>
+    <div id="auth-form-reset" style="display:none">
+      <div id="auth-reset-fields">
+        <div class="auth-field"><label>Email address</label><input type="email" id="auth-email-reset" placeholder="your@email.com" onkeydown="if(event.key==='Enter')authSendReset()"></div>
+        <button class="auth-submit" id="auth-btn-reset" onclick="authSendReset()">Send reset link</button>
+      </div>
+      <div class="auth-reset-success" id="auth-reset-success">
+        Reset link sent — check your inbox. The link expires in 1 hour. Check your spam folder if it doesn't arrive within a few minutes.
+      </div>
+      <button type="button" class="auth-back-link" onclick="authSwitchTab('login')">← Back to sign in</button>
+    </div>
+    <div id="auth-form-newpass" style="display:none">
+      <div class="auth-field"><label>New password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-new" placeholder="Minimum 6 characters" onkeydown="if(event.key==='Enter')authUpdatePassword()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-new',this)" tabindex="-1">👁</button></div></div>
+      <div class="auth-field"><label>Confirm new password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-new-confirm" placeholder="Re-enter your password" onkeydown="if(event.key==='Enter')authUpdatePassword()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-new-confirm',this)" tabindex="-1">👁</button></div></div>
+      <button class="auth-submit" id="auth-btn-newpass" onclick="authUpdatePassword()">Update password</button>
+    </div>
+    <div id="auth-form-signup" style="display:none">
+      <div class="auth-field"><label>Email</label><input type="email" id="auth-email-signup" placeholder="your@email.com" onkeydown="if(event.key==='Enter')authSignup()"></div>
+      <div class="auth-field"><label>Password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-signup" placeholder="Minimum 6 characters" onkeydown="if(event.key==='Enter')authSignup()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-signup',this)" tabindex="-1">👁</button></div></div>
+      <div class="auth-field"><label>Confirm password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-confirm" placeholder="Re-enter your password" onkeydown="if(event.key==='Enter')authSignup()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-confirm',this)" tabindex="-1">👁</button></div></div>
+      <button class="auth-submit" id="auth-btn-signup" onclick="authSignup()">Create account</button>
+      <div class="auth-notice">Free accounts save your practice profile, projects, and client data. Exports include a preview watermark — <strong>upgrade from R249/month</strong> for clean, submission-ready professional exports.</div>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- ═══ PRICING MODAL ═══ -->
+<div class="pricing-overlay" id="pricing-overlay" onclick="pricingOverlayClick(event)">
+  <div class="pricing-card">
+    <button class="pricing-close" onclick="pricingHideModal()">×</button>
+    <div class="pricing-header">
+      <div class="pricing-title">Choose your plan</div>
+      <div class="pricing-sub">All plans include access to all 6 council form tabs. No setup fees.</div>
+    </div>
+    <div class="pricing-toggle">
+      <button class="pricing-toggle-btn" id="ptog-monthly" onclick="pricingSetBilling('monthly')">Monthly</button>
+      <button class="pricing-toggle-btn active" id="ptog-annual" onclick="pricingSetBilling('annual')">Annual</button>
+      <span class="pricing-save-badge">Save 20%</span>
+    </div>
+    <div class="pricing-grid">
+
+      <!-- FREE -->
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-tagline">Try the full product — no commitment required</div>
+        <div class="plan-price"><sup>R</sup>0</div>
+        <div class="plan-price-sub">Always free</div>
+        <div class="plan-save">&nbsp;</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>All 6 form tabs, fully accessible</li>
+          <li>1 form exported clean — no watermark</li>
+          <li>1 saved practice profile</li>
+          <li>1 saved project</li>
+          <li class="na">All other exports include a watermark</li>
+          <li class="na">No client intake links</li>
+        </ul>
+        <button class="plan-cta muted" disabled>Current plan</button>
+      </div>
+
+      <!-- SUBMISSION PACK -->
+      <div class="plan-card">
+        <div class="plan-name">Submission Pack</div>
+        <div class="plan-tagline">For occasional submitters — no monthly commitment</div>
+        <div class="plan-price"><sup>R</sup>349</div>
+        <div class="plan-price-sub">Once-off payment, no expiry</div>
+        <div class="plan-save">&nbsp;</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>2 complete form packs exported clean</li>
+          <li>1 saved practice profile</li>
+          <li>2 saved projects</li>
+          <li>Pay once — no subscription, no expiry</li>
+          <li class="na">No client intake links</li>
+        </ul>
+        <button class="plan-cta" onclick="upgradeSelect('pack')">Buy 2 submissions</button>
+      </div>
+
+      <!-- PROFESSIONAL (featured) -->
+      <div class="plan-card featured">
+        <div class="plan-featured-badge">MOST POPULAR</div>
+        <div class="plan-name">Professional</div>
+        <div class="plan-tagline">Unlimited clean exports — your complete submission workflow</div>
+        <div class="plan-price" id="pro-price"><sup>R</sup>199<span style="font-size:16px;font-weight:400">/mo</span></div>
+        <div class="plan-price-sub" id="pro-billing">Billed R2,390/year</div>
+        <div class="plan-save" id="pro-save">Save R598 vs monthly</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>1 user profile</li>
+          <li>Unlimited projects</li>
+          <li>Clean, watermark-free exports</li>
+          <li>Client intake links per project</li>
+          <li>All 6 council forms included</li>
+        </ul>
+        <button class="plan-cta gold" onclick="upgradeSelect('professional')">Start Professional</button>
+      </div>
+
+      <!-- FIRM -->
+      <div class="plan-card">
+        <div class="plan-name">Firm</div>
+        <div class="plan-tagline">For practices with multiple team members</div>
+        <div class="plan-price" id="firm-price"><sup>R</sup>479<span style="font-size:16px;font-weight:400">/mo</span></div>
+        <div class="plan-price-sub" id="firm-billing">Billed R5,750/year</div>
+        <div class="plan-save" id="firm-save">Save R1,438 vs monthly</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Multiple users — up to 6 team members</li>
+          <li>Unlimited shared projects</li>
+          <li>Firm-level practice profile</li>
+          <li>All Professional features included</li>
+          <li>Firm admin manages billing and users</li>
+        </ul>
+        <button class="plan-cta" onclick="upgradeSelect('firm')">Start Firm plan</button>
+      </div>
+
+    </div>
+    <div class="pricing-msg" id="pricing-msg"></div>
+    <div class="pricing-notice">
+      Annual plans auto-renew. Cancel any time. Payments via PayFast — SA cards, EFT, SnapScan, and Zapper accepted.<br>
+      Questions? <a href="mailto:hello@millimetre.co.za" style="color:var(--gold)">hello@millimetre.co.za</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ ADMIN PANEL ═══ -->
+<div class="adm-overlay" id="adm-overlay" onclick="adminOverlayClick(event)">
+  <div class="adm-card">
+    <div class="adm-hdr">
+      <div class="adm-hdr-left">
+        <div class="adm-hdr-title">Admin — Usage Analytics</div>
+        <div class="adm-hdr-sub">Visible to admin only · Data from Supabase exports table</div>
+      </div>
+      <div class="adm-hdr-actions">
+        <button class="adm-refresh" onclick="adminLoadStats()">↺ Refresh</button>
+        <button class="adm-close-btn" onclick="adminClose()">×</button>
+      </div>
+    </div>
+    <div id="adm-content"></div>
+  </div>
+</div>
+
 </body>
 </html>
