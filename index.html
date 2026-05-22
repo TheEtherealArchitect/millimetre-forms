@@ -3024,24 +3024,20 @@ function _tourStopKeys(e) {
 
 function tourShouldShow() {
   if (_tourShown) return false;
-  if (localStorage.getItem('cfaf_tour_done')) return false;
+  if (localStorage.getItem('cfaf_onboarding_v2')) return false;
   return true;
 }
 
 function tourStart() {
   if (!tourShouldShow()) return;
-  // onAuthStateChange fires as a microtask before the browser parses the tour HTML
-  // (which sits after </script>). Guard here and re-queue once the DOM is ready.
-  if (!document.getElementById('tour-overlay')) {
-    document.addEventListener('DOMContentLoaded', tourStart, { once: true });
-    return;
-  }
+  const overlay = document.getElementById('tour-overlay');
+  if (!overlay) return;
   _tourShown  = true;
   _tourStep   = 0;
   _tourActive = true;
   document.getElementById('tour-spotlight').style.display = 'none';
   document.getElementById('tour-card').style.cssText = '';
-  document.getElementById('tour-overlay').classList.add('active');
+  overlay.classList.add('active');
   // Block page scroll while tour is active (overlay is pass-through, so use document)
   document.addEventListener('wheel',     _tourStopScroll, { passive: false });
   document.addEventListener('touchmove', _tourStopScroll, { passive: false });
@@ -3067,7 +3063,7 @@ async function tourEnd(completed) {
   window.removeEventListener('keydown', _tourStopKeys);
   document.getElementById('tour-spotlight').style.display = 'none';
   document.getElementById('tour-card').style.cssText = '';
-  localStorage.setItem('cfaf_tour_done', '1');
+  if (completed) localStorage.setItem('cfaf_onboarding_v2', '1');
   if (completed && _authUser && _authProfile && !_authProfile.onboarding_complete) {
     await _sb.from('profiles').update({ onboarding_complete: true }).eq('id', _authUser.id);
     _authProfile.onboarding_complete = true;
@@ -3168,9 +3164,8 @@ const SUPABASE_URL = 'https://hzqwiqeblgudsrwtgajb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TRXh3ZIsPkMosZ2RYJeWxw_z45MbVQP';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let _authUser          = null;
-let _authProfile       = null;
-let _authProfileLoaded = false; // true once authLoadProfile() has resolved (even if null)
+let _authUser    = null;
+let _authProfile = null;
 
 function authTier()   { return _authProfile?.subscription_tier || 'free'; }
 function authIsPaid() { return ['professional','firm'].includes(authTier()); }
@@ -3434,13 +3429,10 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     } catch(e) {
       _authProfile = null;
     }
-    _authProfileLoaded = true;
   } else {
-    _authProfile       = null;
-    _authProfileLoaded = true; // no profile to load for anonymous — mark ready
+    _authProfile = null;
   }
   authUpdateUI();
-  tourStart();
 });
 
 // ── First-time onboarding prompt ─────────────────────────────────
@@ -3733,7 +3725,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   projectInit();
   loadPDFs().catch(()=>{});
   goTab(0);
-  tourStart(); // fallback: runs if onAuthStateChange fired before this HTML was parsed
+  tourStart();
 });
 </script>
 
