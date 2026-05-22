@@ -707,11 +707,11 @@ select.pr-edit{
 .sb-auth-signout:hover{color:rgba(255,255,255,.6)}
 
 /* ── Guided tour ─────────────────────────────────────────────── */
-.tour-overlay{position:fixed;inset:0;z-index:500;pointer-events:none}
+.tour-overlay{position:fixed;inset:0;z-index:1010;pointer-events:none}
 .tour-overlay.active{pointer-events:none}
 .tour-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);transition:opacity .3s}
-.tour-spotlight{position:fixed;border-radius:6px;box-shadow:0 0 0 3px var(--gold),0 0 0 9999px rgba(0,0,0,.62);pointer-events:none;z-index:501;display:none}
-.tour-card{position:fixed;display:none;background:var(--paper);border-radius:4px;padding:24px 26px 20px;width:310px;box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:502;pointer-events:auto}
+.tour-spotlight{position:fixed;border-radius:6px;box-shadow:0 0 0 3px var(--gold),0 0 0 9999px rgba(0,0,0,.62);pointer-events:none;z-index:1011;display:none}
+.tour-card{position:fixed;display:none;background:var(--paper);border-radius:4px;padding:24px 26px 20px;width:310px;box-shadow:0 8px 32px rgba(0,0,0,.22);z-index:1012;pointer-events:auto}
 .tour-step-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink4);margin-bottom:8px}
 .tour-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:.04em;color:var(--ink);margin-bottom:8px;line-height:1.2}
 .tour-card p{font-size:12.5px;color:var(--ink3);line-height:1.65;margin-bottom:18px}
@@ -3024,13 +3024,8 @@ function _tourStopKeys(e) {
 
 function tourShouldShow() {
   if (_tourShown) return false;
-  // Anonymous: show every page load
-  if (!_authUser) return true;
-  // Logged in: wait until profile load has resolved before deciding
-  if (!_authProfileLoaded) return false;
-  // Show if no profile row yet, or onboarding not yet complete
-  if (!_authProfile || !_authProfile.onboarding_complete) return true;
-  return false;
+  if (localStorage.getItem('cfaf_tour_done')) return false;
+  return true;
 }
 
 function tourStart() {
@@ -3072,6 +3067,7 @@ async function tourEnd(completed) {
   window.removeEventListener('keydown', _tourStopKeys);
   document.getElementById('tour-spotlight').style.display = 'none';
   document.getElementById('tour-card').style.cssText = '';
+  localStorage.setItem('cfaf_tour_done', '1');
   if (completed && _authUser && _authProfile && !_authProfile.onboarding_complete) {
     await _sb.from('profiles').update({ onboarding_complete: true }).eq('id', _authUser.id);
     _authProfile.onboarding_complete = true;
@@ -3415,6 +3411,7 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     return;
   }
   _authUser = session?.user || null;
+  authUpdateUI(); // update topbar immediately — don't wait for profile load
   if (_authUser) {
     // Restore anonymous draft if present (survives email-confirmation page reload)
     const raw = localStorage.getItem('cfaf_anon_draft');
