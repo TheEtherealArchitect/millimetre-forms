@@ -185,8 +185,15 @@ body{
 .tb-auth-upgrade:hover{background:var(--gold-dk)}
 .tb-auth-admin{padding:5px 13px;background:var(--ink2);color:rgba(255,255,255,.7);border:none;border-radius:3px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;cursor:pointer;transition:background .15s}
 .tb-auth-admin:hover{background:var(--ink);color:#fff}
+.tb-test-badge{background:#E8C96B;color:#5A3C00;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:3px}
 
 /* ── Admin panel ─────────────────────────────────────────────────── */
+.adm-test-bar{background:#FFF8EC;border-bottom:1.5px solid #E8C96B;padding:14px 28px}
+.adm-test-bar-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7A5C00;margin-bottom:10px}
+.adm-test-btns{display:flex;gap:8px;flex-wrap:wrap}
+.adm-test-btn{padding:7px 16px;border:1.5px solid var(--line2);border-radius:3px;font-family:'Jost',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;background:var(--paper);color:var(--ink3);transition:all .15s}
+.adm-test-btn:hover{border-color:var(--ink2);color:var(--ink)}
+.adm-test-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
 .adm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:32px 20px 48px;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto}
 .adm-overlay.open{opacity:1;pointer-events:all}
 .adm-card{background:var(--paper);border-radius:8px;width:100%;max-width:920px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)}
@@ -3223,8 +3230,17 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let _authUser    = null;
 let _authProfile = null;
 
-function authTier()   { return _authProfile?.subscription_tier || 'free'; }
+let _testTier = null; // admin-only session override — does not touch Supabase
+function authTier()   { return _testTier !== null ? _testTier : (_authProfile?.subscription_tier || 'free'); }
 function authIsPaid() { return ['professional','firm','pack'].includes(authTier()); }
+function setTestTier(tier) {
+  _testTier = tier;
+  authUpdateUI();
+  document.querySelectorAll('.adm-test-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tier === (tier ?? 'real'));
+  });
+  profileToast(tier ? `Simulating: ${tier} tier` : 'Testing mode off — using real account tier');
+}
 function tierProjectLimit() {
   switch(authTier()){case 'pack':return 2;case 'professional':case 'firm':return Infinity;default:return 0;}
 }
@@ -3447,16 +3463,19 @@ function authUpdateUI() {
     const tier   = authTier();
     const email  = _authUser.email || '';
     const short  = email.length > 24 ? email.slice(0,22) + '…' : email;
-    const labels = { free:'Free', professional:'Professional', firm:'Firm' };
-    const upgradeBtn = tier === 'free'
+    const labels = { free:'Free', pack:'Pack', professional:'Professional', firm:'Firm' };
+    const upgradeBtn = ['free','pack'].includes(tier)
       ? `<button class="tb-auth-upgrade" onclick="pricingShowModal()">Upgrade</button>`
       : '';
     const adminBtn = _authProfile?.is_admin
       ? `<button class="tb-auth-admin" onclick="adminOpen()">Admin</button>`
       : '';
+    const testBadge = _testTier !== null
+      ? `<span class="tb-test-badge">TESTING: ${labels[_testTier] || _testTier}</span>`
+      : '';
     tbAuth.innerHTML = `
       <div class="tb-auth-user">
-        ${adminBtn}
+        ${testBadge}${adminBtn}
         ${upgradeBtn}
         <span class="tb-auth-email">${short}</span>
         <span class="tb-auth-tier ${tier}">${labels[tier] || tier}</span>
@@ -3750,18 +3769,93 @@ function pricingSetBilling(type) {
   }
 }
 
+// ── PAYFAST CONFIG — fill in from your PayFast dashboard ─────────
+const PAYFAST_CONFIG = {
+  merchant_id:  '',        // from PayFast → Settings → Merchant ID
+  merchant_key: '',        // from PayFast → Settings → Merchant Key
+  passphrase:   '',        // from PayFast → Settings → Set a passphrase (optional but recommended)
+  sandbox:      true,      // true = sandbox (testing), false = live payments
+  notify_url:   '',        // Supabase Edge Function URL — set after deploying itn-handler
+  return_url:   '',        // e.g. https://your-domain.co.za/?payment=success
+  cancel_url:   '',        // e.g. https://your-domain.co.za/?payment=cancelled
+};
+
+// Plan definitions — amounts in ZAR, no currency symbol
+const PAYFAST_PLANS = {
+  'professional-monthly': { amount:'399.00',  label:'Professional (Monthly)',      sub:true,  freq:3, cycles:0 },
+  'professional-annual':  { amount:'2390.00', label:'Professional (Annual)',       sub:true,  freq:6, cycles:0 },
+  'firm-monthly':         { amount:'599.00',  label:'Firm (Monthly)',              sub:true,  freq:3, cycles:0 },
+  'firm-annual':          { amount:'5750.00', label:'Firm (Annual)',               sub:true,  freq:6, cycles:0 },
+  'pack':                 { amount:'349.00',  label:'Submission Pack (2 exports)', sub:false },
+};
+
 function upgradeSelect(tier) {
-  if (!_authUser) {
-    pricingHideModal();
-    authShowModal('signup');
+  if (!_authUser) { pricingHideModal(); authShowModal('signup'); return; }
+
+  if (!PAYFAST_CONFIG.merchant_id) {
+    // PayFast not yet configured — show contact fallback
+    const msg = document.getElementById('pricing-msg');
+    const names = { pack:'Submission Pack', professional:'Professional', firm:'Firm' };
+    msg.innerHTML = `<strong>Thanks for your interest in ${names[tier]}!</strong><br>
+      Payments are being set up. Email <a href="mailto:joshil@millimetre-architecture.com" style="color:var(--gold-dk)">joshil@millimetre-architecture.com</a> for early access.`;
+    msg.classList.add('show');
     return;
   }
-  // PayFast integration will go here — for now show contact message
-  const msg = document.getElementById('pricing-msg');
-  const names = { pack:'Submission Pack', professional:'Professional', firm:'Firm' };
-  msg.innerHTML = `<strong>Thanks for your interest in ${names[tier]}!</strong><br>
-    Payment is being set up. In the meantime, email us at <a href="mailto:hello@millimetre.co.za" style="color:var(--gold-dk)">hello@millimetre.co.za</a> to get early access.`;
-  msg.classList.add('show');
+
+  pricingHideModal();
+  const billing = _pricingBilling || 'annual';
+  const planKey = tier === 'pack' ? 'pack' : `${tier}-${billing}`;
+  payFastRedirect(planKey);
+}
+
+async function payFastRedirect(planKey) {
+  const plan = PAYFAST_PLANS[planKey];
+  if (!plan) return;
+  const cfg = PAYFAST_CONFIG;
+  const m_payment_id = (_authUser?.id || 'anon') + '_' + Date.now();
+
+  // Log pending payment so the ITN webhook can match it to this user
+  if (_authUser) {
+    _sb.from('payments').insert({
+      user_id: _authUser.id, m_payment_id, plan: planKey, status: 'pending'
+    }).then(()=>{}).catch(()=>{});
+  }
+
+  const params = {
+    merchant_id:  cfg.merchant_id,
+    merchant_key: cfg.merchant_key,
+    return_url:   cfg.return_url  || window.location.href,
+    cancel_url:   cfg.cancel_url  || window.location.href,
+    notify_url:   cfg.notify_url,
+    name_first:   (_authUser?.email || '').split('@')[0],
+    email_address: _authUser?.email || '',
+    m_payment_id,
+    amount:        plan.amount,
+    item_name:     'Millimetre Form Filler — ' + plan.label,
+    ...(plan.sub ? {
+      subscription_type: '1',
+      billing_date:       new Date().toISOString().split('T')[0],
+      recurring_amount:   plan.amount,
+      frequency:          String(plan.freq),
+      cycles:             String(plan.cycles),
+    } : {}),
+  };
+  if (cfg.passphrase) params.passphrase = cfg.passphrase;
+
+  // Submit form to PayFast
+  const host = cfg.sandbox
+    ? 'https://sandbox.payfast.co.za'
+    : 'https://www.payfast.co.za';
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = host + '/eng/process';
+  Object.entries(params).forEach(([k,v]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = v;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 // ── INIT ───────────────────────────────────────────────────────────
@@ -3988,6 +4082,16 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="adm-hdr-actions">
         <button class="adm-refresh" onclick="adminLoadStats()">↺ Refresh</button>
         <button class="adm-close-btn" onclick="adminClose()">×</button>
+      </div>
+    </div>
+    <div class="adm-test-bar">
+      <div class="adm-test-bar-title">Simulate tier — test any user experience without changing your account</div>
+      <div class="adm-test-btns">
+        <button class="adm-test-btn active" data-tier="real" onclick="setTestTier(null)">My real account</button>
+        <button class="adm-test-btn" data-tier="free" onclick="setTestTier('free')">Free</button>
+        <button class="adm-test-btn" data-tier="pack" onclick="setTestTier('pack')">Submission Pack</button>
+        <button class="adm-test-btn" data-tier="professional" onclick="setTestTier('professional')">Professional</button>
+        <button class="adm-test-btn" data-tier="firm" onclick="setTestTier('firm')">Firm</button>
       </div>
     </div>
     <div id="adm-content"></div>
