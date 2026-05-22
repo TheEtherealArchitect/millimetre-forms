@@ -3024,10 +3024,12 @@ function _tourStopKeys(e) {
 
 function tourShouldShow() {
   if (_tourShown) return false;
-  // Anonymous: show every page load (no account to persist state)
+  // Anonymous: show every page load
   if (!_authUser) return true;
-  // Logged in: show once until onboarding_complete
-  if (_authProfile && !_authProfile.onboarding_complete) return true;
+  // Logged in: wait until profile load has resolved before deciding
+  if (!_authProfileLoaded) return false;
+  // Show if no profile row yet, or onboarding not yet complete
+  if (!_authProfile || !_authProfile.onboarding_complete) return true;
   return false;
 }
 
@@ -3170,8 +3172,9 @@ const SUPABASE_URL = 'https://hzqwiqeblgudsrwtgajb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TRXh3ZIsPkMosZ2RYJeWxw_z45MbVQP';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let _authUser    = null;
-let _authProfile = null;
+let _authUser          = null;
+let _authProfile       = null;
+let _authProfileLoaded = false; // true once authLoadProfile() has resolved (even if null)
 
 function authTier()   { return _authProfile?.subscription_tier || 'free'; }
 function authIsPaid() { return ['professional','firm'].includes(authTier()); }
@@ -3427,8 +3430,10 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     } catch(e) {
       _authProfile = null;
     }
+    _authProfileLoaded = true;
   } else {
-    _authProfile = null;
+    _authProfile       = null;
+    _authProfileLoaded = true; // no profile to load for anonymous — mark ready
   }
   authUpdateUI();
   tourStart();
