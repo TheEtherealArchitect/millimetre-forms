@@ -3330,8 +3330,15 @@ function authTogglePass(inputId, btn) {
 
 // ── Load profile from Supabase ───────────────────────────────────
 async function authLoadProfile(userId) {
-  const { data } = await _sb.from('profiles').select('*').eq('id', userId).single();
-  return data || null;
+  try {
+    const result = await Promise.race([
+      _sb.from('profiles').select('*').eq('id', userId).single(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('profile_timeout')), 5000))
+    ]);
+    return result.data || null;
+  } catch(e) {
+    return null;
+  }
 }
 
 // ── Apply profile fields into the form ───────────────────────────
