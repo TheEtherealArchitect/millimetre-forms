@@ -828,7 +828,7 @@ select.pr-edit{
     <img src="logo-only.jpg" class="signup-banner-logo" alt="Millimetre Architecture">
     <div class="signup-banner-text">
       <div class="signup-banner-headline">Create a Free Account — Save Your Profile &amp; Unlock Professional Workflows</div>
-      <div class="signup-banner-sub">Plans from R249/month &nbsp;·&nbsp; No credit card required &nbsp;·&nbsp; Cancel any time</div>
+      <div class="signup-banner-sub">Plans from R199/month &nbsp;·&nbsp; No credit card required &nbsp;·&nbsp; Cancel any time</div>
     </div>
   </div>
   <div class="signup-banner-actions">
@@ -3360,7 +3360,7 @@ function authUpdateUI() {
     if (banner) banner.classList.remove('hidden');
     if (tbAuth) tbAuth.innerHTML = `<button class="tb-auth-btn" onclick="authShowModal('login')">Sign in</button>`;
     if (notice) {
-      notice.innerHTML = `<strong>Demo mode</strong> — exports include a preview watermark. <a onclick="authShowModal('signup')">Create a free account</a> to save your profile, projects, and workflow — then <a onclick="pricingShowModal()">upgrade from R249/month</a> for clean professional exports.`;
+      notice.innerHTML = `<strong>Demo mode</strong> — exports include a preview watermark. <a onclick="authShowModal('signup')">Create a free account</a> to save your profile, projects, and workflow — then <a onclick="pricingShowModal()">upgrade from R199/month</a> for clean professional exports.`;
       notice.classList.add('show');
     }
     return;
@@ -3673,12 +3673,12 @@ function pricingSetBilling(type) {
   if (type === 'annual') {
     document.getElementById('pro-price').innerHTML  = '<sup>R</sup>199<span style="font-size:16px;font-weight:400">/mo</span>';
     document.getElementById('pro-billing').textContent = 'Billed R2,390/year';
-    document.getElementById('pro-save').textContent   = 'Save R598 vs monthly';
+    document.getElementById('pro-save').textContent   = 'Save R2,398 vs monthly';
     document.getElementById('firm-price').innerHTML  = '<sup>R</sup>479<span style="font-size:16px;font-weight:400">/mo</span>';
     document.getElementById('firm-billing').textContent = 'Billed R5,750/year';
     document.getElementById('firm-save').textContent   = 'Save R1,438 vs monthly';
   } else {
-    document.getElementById('pro-price').innerHTML  = '<sup>R</sup>249<span style="font-size:16px;font-weight:400">/mo</span>';
+    document.getElementById('pro-price').innerHTML  = '<sup>R</sup>399<span style="font-size:16px;font-weight:400">/mo</span>';
     document.getElementById('pro-billing').textContent = 'Billed monthly';
     document.getElementById('pro-save').textContent   = '';
     document.getElementById('firm-price').innerHTML  = '<sup>R</sup>599<span style="font-size:16px;font-weight:400">/mo</span>';
@@ -3788,7 +3788,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="auth-field"><label>Password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-signup" placeholder="Minimum 6 characters" onkeydown="if(event.key==='Enter')authSignup()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-signup',this)" tabindex="-1">👁</button></div></div>
       <div class="auth-field"><label>Confirm password</label><div class="auth-pass-wrap"><input type="password" id="auth-pass-confirm" placeholder="Re-enter your password" onkeydown="if(event.key==='Enter')authSignup()"><button type="button" class="auth-pass-toggle" onclick="authTogglePass('auth-pass-confirm',this)" tabindex="-1">👁</button></div></div>
       <button class="auth-submit" id="auth-btn-signup" onclick="authSignup()">Create account</button>
-      <div class="auth-notice">Free accounts save your practice profile, projects, and client data. Exports include a preview watermark — <strong>upgrade from R249/month</strong> for clean, submission-ready professional exports.</div>
+      <div class="auth-notice">Free accounts save your practice profile, projects, and client data. Exports include a preview watermark — <strong>upgrade from R199/month</strong> for clean, submission-ready professional exports.</div>
     </div>
     <div class="auth-error" id="auth-error"></div>
   </div>
@@ -3805,7 +3805,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="pricing-toggle">
       <button class="pricing-toggle-btn" id="ptog-monthly" onclick="pricingSetBilling('monthly')">Monthly</button>
       <button class="pricing-toggle-btn active" id="ptog-annual" onclick="pricingSetBilling('annual')">Annual</button>
-      <span class="pricing-save-badge">Save 20%</span>
+      <span class="pricing-save-badge">Save up to 50%</span>
     </div>
     <div class="pricing-grid">
 
@@ -3853,7 +3853,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="plan-tagline">Unlimited clean exports — your complete submission workflow</div>
         <div class="plan-price" id="pro-price"><sup>R</sup>199<span style="font-size:16px;font-weight:400">/mo</span></div>
         <div class="plan-price-sub" id="pro-billing">Billed R2,390/year</div>
-        <div class="plan-save" id="pro-save">Save R598 vs monthly</div>
+        <div class="plan-save" id="pro-save">Save R2,398 vs monthly</div>
         <div class="plan-divider"></div>
         <ul class="plan-features">
           <li>1 user profile</li>
