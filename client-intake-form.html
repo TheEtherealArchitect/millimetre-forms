@@ -127,6 +127,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .token-error-box{background:var(--paper);border:1px solid var(--line);padding:40px;text-align:center;}
 .loading-bar{text-align:center;padding:60px 24px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink4);letter-spacing:.1em;}
 
+/* Logo in header */
+.header-logo{max-height:52px;max-width:160px;object-fit:contain;margin-bottom:12px;display:block;}
+
 /* Footer */
 .footer{background:var(--ink);padding:16px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:40px;}
 .footer-copy{font-family:'DM Mono',monospace;font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.08em;}
@@ -170,9 +173,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="header">
   <div class="header-top">
     <div class="brand">
-      <div class="brand-label">Prepared by</div>
-      <div class="brand-name">Millimetre Architecture</div>
-      <div class="brand-url">millimetre-architecture.com</div>
+      <img id="header-logo" class="header-logo" style="display:none">
+      <div class="brand-label" id="brand-label">Prepared by</div>
+      <div class="brand-name" id="brand-name">Millimetre Architecture</div>
+      <div class="brand-url" id="brand-url">millimetre-architecture.com</div>
     </div>
     <div class="header-ref">
       <div class="header-ref-label">Date issued</div>
@@ -468,8 +472,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <!-- Footer -->
 <div class="footer">
-  <span class="footer-copy">© 2026 Millimetre Architecture. All rights reserved.</span>
-  <div class="footer-links">
+  <span class="footer-copy" id="footer-copy">© 2026 Millimetre Architecture. All rights reserved.</span>
+  <div class="footer-links" id="footer-links">
     <a href="https://www.millimetre-architecture.com" target="_blank">millimetre-architecture.com</a>
     <a href="mailto:joshil@millimetre-architecture.com">joshil@millimetre-architecture.com</a>
   </div>
@@ -521,6 +525,20 @@ document.getElementById('issue-date').textContent =
   if (data.project_address) {
     document.getElementById('header-project').textContent = '↳ ' + data.project_address;
     document.getElementById('decl-address').textContent = data.project_address;
+  }
+
+  // White-label branding — if token has a logo_url, show architect's brand
+  if (data.logo_url) {
+    const logo = document.getElementById('header-logo');
+    logo.src = data.logo_url;
+    logo.style.display = 'block';
+    // Hide Millimetre name/url — logo replaces it
+    document.getElementById('brand-label').style.display = 'none';
+    document.getElementById('brand-name').style.display = 'none';
+    document.getElementById('brand-url').style.display = 'none';
+    // Footer: "Powered by Millimetre" only
+    document.getElementById('footer-copy').textContent = 'Powered by Millimetre — council submission software for architects';
+    document.getElementById('footer-links').innerHTML = '<a href="https://www.millimetre-architecture.com" target="_blank">millimetre-architecture.com</a>';
   }
 
   document.getElementById('main-form').style.display = '';

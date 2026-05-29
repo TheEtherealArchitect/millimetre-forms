@@ -840,6 +840,14 @@ select.pr-edit{
 .pset-footer{padding:0 28px 24px;display:flex;align-items:center;gap:12px;justify-content:flex-end}
 .pset-save{padding:10px 28px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .pset-save:hover{background:var(--gold-dk)}
+.pset-logo-row{display:flex;align-items:center;gap:16px;padding:12px;border:1px dashed var(--line2);background:var(--paper2);cursor:pointer;transition:border-color .15s}
+.pset-logo-row:hover{border-color:var(--gold)}
+.pset-logo-preview{width:64px;height:64px;object-fit:contain;border:1px solid var(--line);background:#fff;flex-shrink:0;display:none}
+.pset-logo-placeholder{width:64px;height:64px;border:1px solid var(--line);background:var(--paper3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;color:var(--ink4)}
+.pset-logo-info{flex:1}
+.pset-logo-info strong{display:block;font-size:12px;font-weight:500;margin-bottom:3px}
+.pset-logo-info span{font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace}
+.pset-logo-badge{display:inline-block;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.1em;padding:2px 7px;background:var(--gold-lt);color:var(--gold-dk);border:1px solid var(--gold);margin-top:4px;text-transform:uppercase}
 .pset-save:disabled{opacity:.5;cursor:not-allowed}
 .pset-msg{font-size:12px;color:var(--green);flex:1}
 .pset-msg.error{color:var(--red)}
@@ -957,7 +965,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 50</p>
+    <p class="tb-rev">rev 51</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2613,11 +2621,13 @@ async function intakeGenerateLink() {
     token = existing[0].token;
   } else {
     // Create a new token
+    const isPaid = ['professional','firm'].includes(authTier());
     const { data: row, error } = await _sb.from('intake_tokens').insert({
       user_id:         _authUser.id,
       project_name:    projectName,
       project_address: address,
       status:          'pending',
+      logo_url:        isPaid ? (_authProfile?.logo_url || null) : null,
     }).select('token').single();
     if (error || !row) { profileToast('⚠ Could not generate intake link', true); return; }
     token = row.token;
@@ -3916,6 +3926,14 @@ const PSET_MAP = {
 
 function profileSettingsOpen() {
   if (!_authUser) { authShowModal('login'); return; }
+
+  // Logo section — show/hide based on tier
+  const tier = authTier();
+  const isPaid = ['professional','firm'].includes(tier);
+  document.getElementById('pset-logo-tier-gate').style.display = isPaid ? 'none' : '';
+  document.getElementById('pset-logo-upload-area').style.display = isPaid ? '' : 'none';
+  if (isPaid) logoPreviewLoad(_authProfile?.logo_url || null);
+
   // Pre-fill modal from current form fields
   Object.entries(PSET_MAP).forEach(([psetId, formId]) => {
     const pset = document.getElementById(psetId);
@@ -3965,6 +3983,93 @@ async function profileSettingsSave() {
   msg.textContent = '✓ Saved';
   msg.className = 'pset-msg';
   setTimeout(() => profileSettingsClose(), 800);
+}
+
+// ── Practice logo upload ──────────────────────────────────────────
+function logoPreviewLoad(url) {
+  const preview = document.getElementById('pset-logo-preview');
+  const placeholder = document.getElementById('pset-logo-placeholder');
+  const removeBtn = document.getElementById('pset-logo-remove-btn');
+  const label = document.getElementById('pset-logo-label');
+  if (url) {
+    preview.src = url;
+    preview.style.display = '';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = '';
+    label.textContent = 'Click to change logo';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = '';
+    removeBtn.style.display = 'none';
+    label.textContent = 'Upload your practice logo';
+  }
+}
+
+async function logoFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('pset-logo-status');
+
+  if (file.size > 200 * 1024) {
+    status.textContent = '⚠ File too large — max 200KB';
+    input.value = '';
+    return;
+  }
+
+  status.textContent = 'Compressing…';
+
+  // Compress via canvas — max 300×300, quality 0.85
+  const compressed = await new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 300;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        const scale = Math.min(MAX / w, MAX / h);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve(blob); }, 'image/png', 0.85);
+    };
+    img.src = url;
+  });
+
+  // SVGs skip canvas compression — use as-is if under 200KB
+  const uploadFile = file.type === 'image/svg+xml' ? file : compressed;
+  const ext = file.type === 'image/svg+xml' ? 'svg' : 'png';
+  const path = _authUser.id + '/logo.' + ext;
+
+  status.textContent = 'Uploading…';
+  const { error } = await _sb.storage.from('logos').upload(path, uploadFile, { upsert: true, contentType: uploadFile.type || 'image/png' });
+  if (error) { status.textContent = '⚠ Upload failed — ' + error.message; return; }
+
+  const { data: { publicUrl } } = _sb.storage.from('logos').getPublicUrl(path);
+  // Bust cache with timestamp
+  const urlWithBust = publicUrl + '?t=' + Date.now();
+
+  await _sb.from('profiles').update({ logo_url: urlWithBust }).eq('id', _authUser.id);
+  if (_authProfile) _authProfile.logo_url = urlWithBust;
+
+  logoPreviewLoad(urlWithBust);
+  status.textContent = '✓ Logo saved';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+  input.value = '';
+}
+
+async function logoRemove() {
+  const status = document.getElementById('pset-logo-status');
+  status.textContent = 'Removing…';
+  // Remove from storage (both png and svg)
+  await _sb.storage.from('logos').remove([_authUser.id + '/logo.png', _authUser.id + '/logo.svg']);
+  await _sb.from('profiles').update({ logo_url: null }).eq('id', _authUser.id);
+  if (_authProfile) _authProfile.logo_url = null;
+  logoPreviewLoad(null);
+  status.textContent = '✓ Logo removed';
+  setTimeout(() => { status.textContent = ''; }, 3000);
 }
 
 // ── Auth state listener (fires on login, logout, page load) ──────
@@ -4433,6 +4538,26 @@ document.addEventListener('DOMContentLoaded',()=>{
       <button class="pset-close" onclick="profileSettingsClose()">×</button>
     </div>
     <div class="pset-body">
+      <div class="pset-section-label">Practice logo</div>
+      <div id="pset-logo-tier-gate" style="display:none">
+        <div style="font-size:11.5px;color:var(--ink3);padding:10px 12px;background:var(--paper2);border:1px solid var(--line);margin-bottom:12px">Your practice logo appears on the client intake form instead of Millimetre branding. Available on Professional and Firm plans. <button style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:11.5px;font-family:inherit;padding:0" onclick="profileSettingsClose();pricingShowModal()">Upgrade →</button></div>
+      </div>
+      <div id="pset-logo-upload-area" style="display:none">
+        <input type="file" id="pset-logo-file" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none" onchange="logoFileSelected(this)">
+        <div class="pset-logo-row" onclick="document.getElementById('pset-logo-file').click()">
+          <img id="pset-logo-preview" class="pset-logo-preview">
+          <div class="pset-logo-placeholder" id="pset-logo-placeholder">🏛</div>
+          <div class="pset-logo-info">
+            <strong id="pset-logo-label">Upload your practice logo</strong>
+            <span>PNG, JPG or SVG — max 200KB — displayed on client intake forms</span>
+            <div class="pset-logo-badge">Professional / Firm</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm" id="pset-logo-remove-btn" onclick="logoRemove()" style="display:none;font-size:11px;padding:5px 14px;border-color:var(--red);color:var(--red)">Remove logo</button>
+          <span style="font-size:10px;color:var(--ink4);font-family:'DM Mono',monospace" id="pset-logo-status"></span>
+        </div>
+      </div>
       <div class="pset-section-label">Architect / practice details</div>
       <div class="pset-grid">
         <div class="pset-field"><label>Title</label><select id="pset_arch_title"><option value="">— Select —</option><option>Mr</option><option>Mrs</option><option>Ms</option><option>Dr</option></select></div>
