@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 36</p>
+    <p class="tb-rev">rev 37</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -1439,7 +1439,7 @@ const FORM_PLUGINS = [{"id":"coj","num":"F-01","title":"COJ Building Plan Submis
   {"type":"text","field":"Provincial Heritage Site previously a National Monument Gazette No","value":"phrag_heritage_gazette_no","fontSize":9},
   {"type":"text","field":"Motivation for proposed work","value":"phrag_motivation","multiline":true,"fontSize":9},
   {"type":"text","field":"Approximate value of proposed work","value":"phrag_value","fontSize":9},
-  {"type":"text","field":"The manner in which proposed works are carried out","value":"phrag_manner","multiline":true,"fontSize":7},
+  {"type":"text","field":"The manner in which proposed works are carried out","value":"phrag_manner","multiline":true,"fontSize":9},
   {"type":"text","field":"Drawing Reference Number and Date 1","value":"phrag_draw_ref_1","fontSize":9},
   {"type":"text","field":"Drawing Reference Number and Date 2","value":"phrag_draw_ref_2","fontSize":9},
   {"type":"text","field":"Drawing Reference Number and Date 3","value":"phrag_draw_ref_3","fontSize":9},
@@ -2056,6 +2056,7 @@ async function executePlugin(plugin, PDFDocument, data, archSigUrl, clientSigUrl
   const pdf   = await PDFDocument.load(b64ToBytes(PDF_B64[plugin.pdf_key]), {ignoreEncryption:true});
   const form  = pdf.getForm();
   const pages = pdf.getPages();
+  const helvetica = await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
 
   function resolve(fld) {
     if (fld.literal !== undefined) return String(fld.literal);
@@ -2073,7 +2074,13 @@ async function executePlugin(plugin, PDFDocument, data, archSigUrl, clientSigUrl
                     '‘':"'",'’':"'",'…':'...',' ':' '};
       return subs[ch] || '';
     });
-    try { const f=form.getTextField(name); f.setText(safe); f.setFontSize(fontSize||8); if(multiline){try{f.enableMultiline();}catch(e2){}} } catch(e) {}
+    try {
+      const f = form.getTextField(name);
+      f.setText(safe);
+      f.setFont(helvetica);
+      f.setFontSize(fontSize || 9);
+      if (multiline) { try { f.enableMultiline(); } catch(e2) {} }
+    } catch(e) {}
   }
   function cb(name, on) {
     // Strategy: try pdf-lib's getCheckBox first.
@@ -2630,10 +2637,11 @@ function projectWriteData(data) {
 }
 
 // ── Rebuild project dropdown ──────────────────────────────────────
-async function projectRebuildSelect(activeName) {
+// Pass projectsMap to skip a second Supabase fetch when caller already has the data
+async function projectRebuildSelect(activeName, projectsMap) {
   const sel = document.getElementById('project-select');
   if (!sel) return;
-  const projects = _authUser ? await sbProjectLoadAll() : projectGetAll();
+  const projects = projectsMap || (_authUser ? await sbProjectLoadAll() : projectGetAll());
   const names    = Object.keys(projects).sort();
   const active   = activeName !== undefined ? activeName : projectGetActive();
   sel.innerHTML  = '<option value="">— New project —</option>';
@@ -2650,8 +2658,7 @@ async function projectRebuildSelect(activeName) {
   const del = document.getElementById('proj-delete-btn');
   if (upd) upd.style.display = hasProject ? '' : 'none';
   if (del) del.style.display = hasProject ? '' : 'none';
-  // Keep localStorage in sync for logged-in users (offline resilience)
-  if (_authUser) projectSetAll(projects);
+  if (_authUser && !projectsMap) projectSetAll(projects);
 }
 
 function projectStatus(msg, ok) {
@@ -2690,14 +2697,14 @@ async function projectOnSelect() {
   let projects;
   if (_authUser) {
     projects = await sbProjectLoadAll();
-    projectSetAll(projects); // keep localStorage in sync
+    projectSetAll(projects);
   } else {
     projects = projectGetAll();
   }
   if (!projects[name]) return;
   projectWriteData(projects[name]);
   projectSetActive(name);
-  projectRebuildSelect(name);
+  projectRebuildSelect(name, projects);
   const saved = projects[name].savedAt
     ? new Date(projects[name].savedAt).toLocaleString('en-ZA')
     : 'unknown';
@@ -2863,16 +2870,11 @@ function projectImportFile(input) {
 
 // ── Init ──────────────────────────────────────────────────────────
 async function projectInit() {
-  if (!_authUser) return; // anonymous users have no persistent projects
-  let projects;
-  if (_authUser) {
-    projects = await sbProjectLoadAll();
-    projectSetAll(projects); // sync to localStorage for offline resilience
-  } else {
-    projects = projectGetAll();
-  }
+  if (!_authUser) return;
+  const projects = await sbProjectLoadAll();
+  projectSetAll(projects);
   const active = projectGetActive();
-  projectRebuildSelect(active);
+  await projectRebuildSelect(active, projects); // pass map — no second fetch
   if (active && projects[active]) {
     projectWriteData(projects[active]);
     const saved = projects[active].savedAt
