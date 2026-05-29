@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 29</p>
+    <p class="tb-rev">rev 30</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -3816,6 +3816,13 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   if (event === 'PASSWORD_RECOVERY') {
     authShowModal('newpass');
     return;
+  }
+  if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+    const hash = window.location.hash;
+    if (hash.includes('type=signup') || hash.includes('type=email_change')) {
+      window.history.replaceState(null, '', window.location.pathname);
+      profileToast('✓ Email confirmed — you are now signed in. Welcome!', false);
+    }
   }
   _authUser = session?.user || null;
   authUpdateUI(); // update topbar immediately — don't wait for profile load
