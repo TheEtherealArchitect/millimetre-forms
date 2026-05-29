@@ -949,6 +949,7 @@ select.pr-edit{
   <button class="project-btn danger" onclick="projectDelete()" id="proj-delete-btn" style="display:none">🗑</button>
   <label class="project-btn" id="proj-import-label" style="cursor:pointer" title="Import a project file from the client intake form">⬆ Import<input type="file" accept=".json" style="display:none" onchange="projectImportFile(this)"></label>
   <button class="project-btn intake" id="proj-intake-btn" onclick="intakeGenerateLink()" title="Generate a client intake link for this project" style="display:none">🔗 Client intake</button>
+  <button class="project-btn" id="proj-intake-refresh" onclick="intakeCheckStatus(projectGetActive())" title="Check if client has submitted intake" style="display:none;padding:6px 8px">↻</button>
   <span class="project-intake-badge" id="proj-intake-badge" style="display:none" title="Client has submitted intake — click to load"></span>
   <span class="project-autosave" id="proj-autosave-status"></span>
 </div>
@@ -956,7 +957,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 48</p>
+    <p class="tb-rev">rev 49</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2632,9 +2633,11 @@ async function intakeCheckStatus(projectName) {
   if (!_authUser || !projectName) {
     document.getElementById('proj-intake-badge').style.display = 'none';
     document.getElementById('proj-intake-btn').style.display = 'none';
+    document.getElementById('proj-intake-refresh').style.display = 'none';
     return;
   }
   document.getElementById('proj-intake-btn').style.display = '';
+  document.getElementById('proj-intake-refresh').style.display = '';
 
   const { data } = await _sb.from('intake_tokens')
     .select('token,status,submitted_at,intake_data,signature_data,declaration_accepted_at,wet_ink_requested')
@@ -3022,6 +3025,7 @@ async function projectInit() {
     profileToast('✓ Project "' + active + '" resumed' + (saved ? ' — saved ' + saved : ''));
     projectStatus('Loaded', true);
     startAutoSave();
+    intakeCheckStatus(active);
   }
 }
 
