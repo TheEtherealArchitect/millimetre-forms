@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 38</p>
+    <p class="tb-rev">rev 39</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2535,9 +2535,7 @@ async function sbProjectDelete(name) {
 async function sbProjectLoadAll() {
   if (!_authUser) return {};
   const { data, error } = await _sb.from('projects').select('name,data,updated_at').eq('user_id', _authUser.id);
-  if (error) { console.error('[sbProjectLoadAll] Supabase error:', error); return {}; }
-  if (!data) { console.warn('[sbProjectLoadAll] No data returned'); return {}; }
-  console.log('[sbProjectLoadAll] Loaded', data.length, 'projects:', data.map(r => r.name));
+  if (error || !data) return {};
   const map = {};
   data.forEach(row => {
     map[row.name] = row.data || {};
@@ -2872,13 +2870,10 @@ function projectImportFile(input) {
 
 // ── Init ──────────────────────────────────────────────────────────
 async function projectInit() {
-  if (!_authUser) { console.log('[projectInit] no auth user, skipping'); return; }
-  console.log('[projectInit] starting for user', _authUser.id);
+  if (!_authUser) return;
   const projects = await sbProjectLoadAll();
-  console.log('[projectInit] projects loaded:', Object.keys(projects));
   projectSetAll(projects);
   const active = projectGetActive();
-  console.log('[projectInit] active project:', active);
   await projectRebuildSelect(active, projects); // pass map — no second fetch
   if (active && projects[active]) {
     projectWriteData(projects[active]);
