@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 39</p>
+    <p class="tb-rev">rev 40</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2302,7 +2302,7 @@ async function executePlugin(plugin, PDFDocument, data, archSigUrl, clientSigUrl
   }
 
   // POA is XFA-hybrid — pdf-lib cannot flatten it. A19 and PHRAG are pure AcroForm.
-  if (!['poa'].includes(plugin.id)) {
+  if (!['poa','sans'].includes(plugin.id)) {
     try { form.flatten(); } catch(e) { console.warn('flatten skipped:', e.message); }
   }
 
