@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 34</p>
+    <p class="tb-rev">rev 35</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -3747,7 +3747,10 @@ function acctMenuClose() {
   if (menu) menu.classList.remove('open');
   if (trigger) trigger.setAttribute('aria-expanded','false');
 }
-document.addEventListener('click', () => acctMenuClose());
+document.addEventListener('click', (e) => {
+  const acct = document.getElementById('tb-acct');
+  if (acct && !acct.contains(e.target)) acctMenuClose();
+});
 
 // ── Profile settings modal ───────────────────────────────────────
 const PSET_MAP = {
