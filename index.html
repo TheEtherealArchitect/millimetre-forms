@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 42</p>
+    <p class="tb-rev">rev 43</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2078,7 +2078,14 @@ async function executePlugin(plugin, PDFDocument, data, archSigUrl, clientSigUrl
       const f = form.getTextField(name);
       f.setText(safe);
       f.setFont(helvetica);
-      f.setFontSize(fontSize || 9);
+      const fs = fontSize || 9;
+      f.setFontSize(fs);
+      // Override /DA on the field dict so flatten() doesn't revert to the form-level
+      // auto-size (font size 0) which causes oversized text in multiline fields
+      try {
+        const { PDFName, PDFString } = PDFLib;
+        f.acroField.dict.set(PDFName.of('DA'), PDFString.of(`/Helv ${fs} Tf 0 g`));
+      } catch(e2) {}
       if (multiline) { try { f.enableMultiline(); } catch(e2) {} }
     } catch(e) {}
   }
@@ -2312,14 +2319,17 @@ async function executePlugin(plugin, PDFDocument, data, archSigUrl, clientSigUrl
   if (hasSig) {
     archImg   = await loadSigImg(pdf, archSigUrl);
     clientImg = await loadSigImg(pdf, clientSigUrl);
+    if (plugin.id==='sans') console.log('[SANS sig] archImg:', !!archImg, 'clientImg:', !!clientImg, 'pages:', pages.length);
   }
   for (const fld of plugin.fields) {
     if (fld.type!=='sig_field'&&fld.type!=='sig_native') continue;
     const img = fld.who==='arch' ? archImg : clientImg;
-    if (!img) continue;
+    if (!img) { if(plugin.id==='sans') console.log('[SANS sig] skipping',fld.who,'— no img'); continue; }
     const rect = fld.rect || SIG_RECTS[fld.field];
-    if (!rect) continue;
-    const pg = pages[fld.page||0]; if (!pg) continue;
+    if (!rect) { if(plugin.id==='sans') console.log('[SANS sig] skipping',fld.who,'— no rect'); continue; }
+    const pg = pages[fld.page||0];
+    if (!pg) { if(plugin.id==='sans') console.log('[SANS sig] skipping',fld.who,'— no page',fld.page); continue; }
+    if (plugin.id==='sans') console.log('[SANS sig] drawing',fld.who,'on page',fld.page,'rect',fld.rect);
     const[x1,y1,x2,y2]=rect,fw=x2-x1,fh=y2-y1;
     const dims=img.scale(1),scale=Math.min(fw/dims.width,fh/dims.height);
     const dw=dims.width*scale,dh=dims.height*scale;
