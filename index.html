@@ -188,6 +188,27 @@ body{
 .tb-auth-admin:hover{background:var(--gold);color:#fff}
 .tb-test-badge{background:#E8C96B;color:#5A3C00;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:3px}
 
+/* ── Account menu (logged-in topbar dropdown) ─────────────────────── */
+.tb-acct{position:relative}
+.tb-acct-trigger{display:flex;align-items:center;gap:8px;background:none;border:1.5px solid var(--line2);border-radius:4px;padding:6px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink2);letter-spacing:.03em;transition:all .15s;white-space:nowrap}
+.tb-acct-trigger:hover{border-color:var(--ink3);color:var(--ink)}
+.tb-acct-trigger .tb-acct-caret{font-size:9px;opacity:.5;margin-left:2px}
+.tb-acct-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--paper);border:1.5px solid var(--line2);border-radius:5px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:180px;z-index:100;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .15s,transform .15s}
+.tb-acct-menu.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.tb-acct-menu-header{padding:10px 14px 8px;border-bottom:1px solid var(--line)}
+.tb-acct-menu-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink3);letter-spacing:.03em;word-break:break-all}
+.tb-acct-menu-tier{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.tb-acct-menu-tier.free{background:var(--paper3);color:var(--ink4)}
+.tb-acct-menu-tier.pack{background:#EEF2FF;color:#3730A3}
+.tb-acct-menu-tier.professional{background:var(--gold-lt);color:var(--gold-dk)}
+.tb-acct-menu-tier.firm{background:var(--green-lt);color:var(--green)}
+.tb-acct-menu-items{padding:6px 0}
+.tb-acct-menu-item{display:block;width:100%;padding:9px 14px;background:none;border:none;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.04em;color:var(--ink2);text-align:left;cursor:pointer;transition:background .1s}
+.tb-acct-menu-item:hover{background:var(--paper2);color:var(--ink)}
+.tb-acct-menu-divider{height:1px;background:var(--line);margin:4px 0}
+.tb-acct-menu-item.danger{color:#C0392B}
+.tb-acct-menu-item.danger:hover{background:#FFF0EE}
+
 /* ── Admin panel ─────────────────────────────────────────────────── */
 .adm-test-bar{background:#FFF8EC;border-bottom:1.5px solid #E8C96B;padding:14px 28px}
 .adm-test-bar-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7A5C00;margin-bottom:10px}
@@ -789,6 +810,31 @@ select.pr-edit{
 .auth-back-link:hover{color:var(--ink)}
 .auth-reset-success{background:#eaf5ee;border:1px solid rgba(26,58,42,.18);border-radius:3px;padding:12px 14px;font-size:12px;color:#1a3a2a;line-height:1.6;display:none;margin-top:4px}
 .auth-reset-success.show{display:block}
+
+/* ── Profile settings modal ──────────────────────────────────────── */
+.pset-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
+.pset-overlay.open{display:flex}
+.pset-card{background:var(--paper);width:100%;max-width:560px;border-radius:4px;position:relative;margin:auto}
+.pset-hdr{background:var(--ink);border-radius:4px 4px 0 0;padding:22px 28px;display:flex;align-items:center;justify-content:space-between}
+.pset-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.06em;color:#fff}
+.pset-close{background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.4);line-height:1;padding:0 4px;transition:color .15s}
+.pset-close:hover{color:#fff}
+.pset-body{padding:28px}
+.pset-section-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.pset-section-label:first-child{margin-top:0}
+.pset-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pset-field{margin-bottom:0}
+.pset-field.full{grid-column:1/-1}
+.pset-field label{display:block;font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+.pset-field input,.pset-field select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:3px;font-family:'Jost',sans-serif;font-size:13px;color:var(--ink);background:var(--paper);outline:none;transition:border-color .15s;box-sizing:border-box}
+.pset-field input:focus,.pset-field select:focus{border-color:var(--gold)}
+.pset-footer{padding:0 28px 24px;display:flex;align-items:center;gap:12px;justify-content:flex-end}
+.pset-save{padding:10px 28px;background:var(--gold);color:#fff;border:none;border-radius:3px;font-family:'Jost',sans-serif;font-size:12px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.pset-save:hover{background:var(--gold-dk)}
+.pset-save:disabled{opacity:.5;cursor:not-allowed}
+.pset-msg{font-size:12px;color:var(--green);flex:1}
+.pset-msg.error{color:var(--red)}
+
 .export-tier-notice{background:var(--gold-lt);border:1px solid rgba(139,115,85,.22);border-radius:4px;padding:12px 16px;font-size:12px;color:var(--gold-dk);margin-bottom:18px;line-height:1.6;display:none}
 .export-tier-notice.show{display:block}
 .export-tier-notice a{color:var(--gold);cursor:pointer;text-decoration:underline}
@@ -899,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 28</p>
+    <p class="tb-rev">rev 29</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2453,7 +2499,7 @@ const PROJECT_FIELDS = [
   'phrag_work_rezoning','phrag_work_landscaping','phrag_work_other',
 ];
 
-// ── Storage helpers ───────────────────────────────────────────────
+// ── Storage helpers (localStorage = anon layer; Supabase = logged-in) ──
 function projectGetAll() {
   try { return JSON.parse(localStorage.getItem(PROJECT_STORE_KEY) || '{}'); }
   catch(e) { return {}; }
@@ -2466,6 +2512,28 @@ function projectGetActive() { return localStorage.getItem(PROJECT_ACTIVE_KEY) ||
 function projectSetActive(name) {
   name ? localStorage.setItem(PROJECT_ACTIVE_KEY, name)
        : localStorage.removeItem(PROJECT_ACTIVE_KEY);
+}
+
+// Supabase project helpers (used when logged in)
+async function sbProjectSave(name, data) {
+  if (!_authUser) return;
+  const payload = { user_id: _authUser.id, name, data, updated_at: new Date().toISOString() };
+  await _sb.from('projects').upsert(payload, { onConflict: 'user_id,name' });
+}
+async function sbProjectDelete(name) {
+  if (!_authUser) return;
+  await _sb.from('projects').delete().eq('user_id', _authUser.id).eq('name', name);
+}
+async function sbProjectLoadAll() {
+  if (!_authUser) return {};
+  const { data, error } = await _sb.from('projects').select('name,data,updated_at').eq('user_id', _authUser.id);
+  if (error || !data) return {};
+  const map = {};
+  data.forEach(row => {
+    map[row.name] = row.data || {};
+    map[row.name].savedAt = row.updated_at;
+  });
+  return map;
 }
 
 // ── Read all project data from the form ───────────────────────────
@@ -2561,10 +2629,10 @@ function projectWriteData(data) {
 }
 
 // ── Rebuild project dropdown ──────────────────────────────────────
-function projectRebuildSelect(activeName) {
+async function projectRebuildSelect(activeName) {
   const sel = document.getElementById('project-select');
   if (!sel) return;
-  const projects = projectGetAll();
+  const projects = _authUser ? await sbProjectLoadAll() : projectGetAll();
   const names    = Object.keys(projects).sort();
   const active   = activeName !== undefined ? activeName : projectGetActive();
   sel.innerHTML  = '<option value="">— New project —</option>';
@@ -2581,6 +2649,8 @@ function projectRebuildSelect(activeName) {
   const del = document.getElementById('proj-delete-btn');
   if (upd) upd.style.display = hasProject ? '' : 'none';
   if (del) del.style.display = hasProject ? '' : 'none';
+  // Keep localStorage in sync for logged-in users (offline resilience)
+  if (_authUser) projectSetAll(projects);
 }
 
 function projectStatus(msg, ok) {
@@ -2592,7 +2662,7 @@ function projectStatus(msg, ok) {
 }
 
 // ── User actions ──────────────────────────────────────────────────
-function projectOnSelect() {
+async function projectOnSelect() {
   const sel  = document.getElementById('project-select');
   const name = sel ? sel.value : '';
   if (!name) {
@@ -2616,7 +2686,13 @@ function projectOnSelect() {
     profileToast('New project started');
     return;
   }
-  const projects = projectGetAll();
+  let projects;
+  if (_authUser) {
+    projects = await sbProjectLoadAll();
+    projectSetAll(projects); // keep localStorage in sync
+  } else {
+    projects = projectGetAll();
+  }
   if (!projects[name]) return;
   projectWriteData(projects[name]);
   projectSetActive(name);
@@ -2665,11 +2741,13 @@ function projectSave() {
     onConfirm: (name) => {
       name = name.trim();
       if (!name) { profileToast('⚠ Please enter a project name', true); return false; }
+      const data = projectReadData();
       const projects = projectGetAll();
-      projects[name] = projectReadData();
+      projects[name] = data;
       projectSetAll(projects);
       projectSetActive(name);
-      projectRebuildSelect(name);
+      if (_authUser) sbProjectSave(name, data).then(() => projectRebuildSelect(name));
+      else projectRebuildSelect(name);
       profileToast('✓ Project "' + name + '" saved');
       projectStatus('Saved', true);
       startAutoSave();
@@ -2678,13 +2756,15 @@ function projectSave() {
   });
 }
 
-function projectUpdate() {
+async function projectUpdate() {
   if (!requireAuth('save projects')) return;
   const name = projectGetActive();
   if (!name) { profileToast('⚠ No project selected', true); return; }
+  const data = projectReadData();
   const projects = projectGetAll();
-  projects[name] = projectReadData();
+  projects[name] = data;
   projectSetAll(projects);
+  if (_authUser) await sbProjectSave(name, data);
   projectRebuildSelect(name);
   projectStatus('Saved', true);
   profileToast('✓ Project "' + name + '" updated');
@@ -2704,7 +2784,8 @@ function projectDelete() {
       delete projects[name];
       projectSetAll(projects);
       projectSetActive('');
-      projectRebuildSelect('');
+      if (_authUser) sbProjectDelete(name).then(() => projectRebuildSelect(''));
+      else projectRebuildSelect('');
       stopAutoSave();
       profileToast('Project "' + name + '" deleted');
       return true;
@@ -2716,14 +2797,15 @@ function projectDelete() {
 function startAutoSave() {
   if (!_authUser) return; // anonymous sessions are not persisted
   stopAutoSave();
-  _projectAutoSaveTimer = setInterval(() => {
+  _projectAutoSaveTimer = setInterval(async () => {
     if (!_authUser) { stopAutoSave(); return; } // stop if user logs out mid-session
     const name = projectGetActive();
     if (!name) return;
+    const data = projectReadData();
     const projects = projectGetAll();
-    if (!projects[name]) return;
-    projects[name] = projectReadData();
+    projects[name] = data;
     projectSetAll(projects);
+    await sbProjectSave(name, data);
     projectRebuildSelect(name);
     projectStatus('Auto-saved', true);
   }, 60000); // every 60 seconds
@@ -2751,11 +2833,12 @@ function projectImportFile(input) {
       const name = (data.projectRef || (data.fields.proj_erf + ' — ' + data.fields.client_name) || 'Imported project').trim();
 
       // Save to project store
+      data.savedAt = new Date().toISOString();
       const projects = projectGetAll();
       projects[name] = data;
-      projects[name].savedAt = new Date().toISOString();
       projectSetAll(projects);
       projectSetActive(name);
+      if (_authUser) sbProjectSave(name, data);
 
       // Load into form
       projectWriteData(data);
@@ -2778,10 +2861,16 @@ function projectImportFile(input) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────
-function projectInit() {
+async function projectInit() {
   if (!_authUser) return; // anonymous users have no persistent projects
-  const projects = projectGetAll();
-  const active   = projectGetActive();
+  let projects;
+  if (_authUser) {
+    projects = await sbProjectLoadAll();
+    projectSetAll(projects); // sync to localStorage for offline resilience
+  } else {
+    projects = projectGetAll();
+  }
+  const active = projectGetActive();
   projectRebuildSelect(active);
   if (active && projects[active]) {
     projectWriteData(projects[active]);
@@ -2927,9 +3016,14 @@ function profileSave() {
           confirmLabel: '↺ Overwrite',
           hideInput: true,
           onConfirm: () => {
-            profiles[name] = profileReadFields();
+            const fields = profileReadFields();
+            profiles[name] = fields;
             profileSetAll(profiles);
             profileSetActive(name);
+            if (_authUser) {
+              _sb.from('profiles').update(fields).eq('id', _authUser.id);
+              if (_authProfile) Object.assign(_authProfile, fields);
+            }
             profileRebuildSelect(name);
             profileToast(`✓ Profile "${name}" updated`);
             return true;
@@ -2937,9 +3031,14 @@ function profileSave() {
         });
         return true;
       }
-      profiles[name] = profileReadFields();
+      const fields = profileReadFields();
+      profiles[name] = fields;
       profileSetAll(profiles);
       profileSetActive(name);
+      if (_authUser) {
+        _sb.from('profiles').update(fields).eq('id', _authUser.id);
+        if (_authProfile) Object.assign(_authProfile, fields);
+      }
       profileRebuildSelect(name);
       profileToast(`✓ Profile "${name}" saved`);
       return true;
@@ -2948,12 +3047,18 @@ function profileSave() {
 }
 
 // Update (overwrite) current active profile with current field values
-function profileUpdate() {
+async function profileUpdate() {
   const name = profileGetActive();
   if (!name) { profileToast('⚠ No profile selected', true); return; }
+  const fields = profileReadFields();
   const profiles = profileGetAll();
-  profiles[name] = profileReadFields();
+  profiles[name] = fields;
   profileSetAll(profiles);
+  // Sync to Supabase profiles row when logged in
+  if (_authUser) {
+    await _sb.from('profiles').update(fields).eq('id', _authUser.id);
+    if (_authProfile) Object.assign(_authProfile, fields);
+  }
   profileRebuildSelect(name);
   profileToast(`✓ Profile "${name}" updated`);
 }
@@ -3583,14 +3688,14 @@ function authUpdateUI() {
   if (tbAuth) {
     const tier   = authTier();
     const email  = _authUser.email || '';
-    const short  = email.length > 24 ? email.slice(0,22) + '…' : email;
+    const short  = email.length > 22 ? email.slice(0,20) + '…' : email;
     const labels = { free:'Free', pack:'Pack', professional:'Professional', firm:'Firm' };
     const upgradeBtn = ['free','pack'].includes(tier)
       ? `<button class="tb-auth-upgrade" onclick="pricingShowModal()">Upgrade</button>`
       : '';
-    const tierOrAdmin = _authProfile?.is_admin
+    const adminBtn = _authProfile?.is_admin
       ? `<button class="tb-auth-admin" onclick="adminOpen()">Admin</button>`
-      : `<span class="tb-auth-tier ${tier}">${labels[tier] || tier}</span>`;
+      : '';
     const testBadge = _testTier !== null
       ? `<span class="tb-test-badge">TESTING: ${labels[_testTier] || _testTier}</span>`
       : '';
@@ -3598,11 +3703,112 @@ function authUpdateUI() {
       <div class="tb-auth-user">
         ${testBadge}
         ${upgradeBtn}
-        <span class="tb-auth-email">${short}</span>
-        ${tierOrAdmin}
-        <button class="tb-auth-signout" onclick="authLogout()">Sign out</button>
+        ${adminBtn}
+        <div class="tb-acct" id="tb-acct">
+          <button class="tb-acct-trigger" onclick="acctMenuToggle(event)" aria-expanded="false" id="tb-acct-trigger">
+            ${short}<span class="tb-acct-caret">▾</span>
+          </button>
+          <div class="tb-acct-menu" id="tb-acct-menu">
+            <div class="tb-acct-menu-header">
+              <div class="tb-acct-menu-email">${htmlEsc(email)}</div>
+              <span class="tb-acct-menu-tier ${tier}">${labels[tier] || tier}</span>
+            </div>
+            <div class="tb-acct-menu-items">
+              <button class="tb-acct-menu-item" onclick="acctMenuClose();profileSettingsOpen()">Profile settings</button>
+              <button class="tb-acct-menu-item" onclick="acctMenuClose();pricingShowModal()">Billing &amp; plan</button>
+              <div class="tb-acct-menu-divider"></div>
+              <button class="tb-acct-menu-item danger" onclick="acctMenuClose();authLogout()">Sign out</button>
+            </div>
+          </div>
+        </div>
       </div>`;
   }
+}
+
+// ── Account menu open/close ──────────────────────────────────────
+function acctMenuToggle(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('tb-acct-menu');
+  const trigger = document.getElementById('tb-acct-trigger');
+  if (!menu) return;
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    if (trigger) trigger.setAttribute('aria-expanded','false');
+  } else {
+    menu.classList.add('open');
+    if (trigger) trigger.setAttribute('aria-expanded','true');
+  }
+}
+function acctMenuClose() {
+  const menu = document.getElementById('tb-acct-menu');
+  const trigger = document.getElementById('tb-acct-trigger');
+  if (menu) menu.classList.remove('open');
+  if (trigger) trigger.setAttribute('aria-expanded','false');
+}
+document.addEventListener('click', () => acctMenuClose());
+
+// ── Profile settings modal ───────────────────────────────────────
+const PSET_MAP = {
+  pset_arch_title:'arch_title', pset_arch_name:'arch_name', pset_arch_reg_title:'arch_reg_title',
+  pset_arch_sacap:'arch_sacap', pset_arch_practice:'arch_practice', pset_arch_id:'arch_id',
+  pset_arch_email:'arch_email', pset_arch_tel:'arch_tel', pset_arch_cell:'arch_cell',
+  pset_arch_fax:'arch_fax', pset_arch_physical_addr:'arch_physical_addr',
+  pset_arch_physical_code:'arch_physical_code', pset_arch_postal_addr:'arch_postal_addr',
+  pset_arch_postal_code:'arch_postal_code', pset_arch_bp_no:'arch_bp_no'
+};
+
+function profileSettingsOpen() {
+  if (!_authUser) { authShowModal('login'); return; }
+  // Pre-fill modal from current form fields
+  Object.entries(PSET_MAP).forEach(([psetId, formId]) => {
+    const pset = document.getElementById(psetId);
+    const form = document.getElementById(formId);
+    if (pset && form) pset.value = form.value;
+  });
+  const msg = document.getElementById('pset-msg');
+  if (msg) { msg.textContent = ''; msg.className = 'pset-msg'; }
+  document.getElementById('pset-overlay').classList.add('open');
+}
+
+function profileSettingsClose() {
+  document.getElementById('pset-overlay').classList.remove('open');
+}
+
+async function profileSettingsSave() {
+  if (!_authUser) return;
+  const btn = document.getElementById('pset-save-btn');
+  const msg = document.getElementById('pset-msg');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  // Read values from modal fields
+  const updates = {};
+  Object.entries(PSET_MAP).forEach(([psetId, profileKey]) => {
+    const el = document.getElementById(psetId);
+    if (el) updates[profileKey] = el.value;
+  });
+
+  const { error } = await _sb.from('profiles').update(updates).eq('id', _authUser.id);
+  btn.disabled = false; btn.textContent = 'Save changes';
+
+  if (error) {
+    msg.textContent = 'Save failed — please try again.';
+    msg.className = 'pset-msg error';
+    return;
+  }
+
+  // Apply to live form fields
+  Object.entries(PSET_MAP).forEach(([psetId, formId]) => {
+    const form = document.getElementById(formId);
+    if (form) { form.value = updates[formId] || ''; form.dispatchEvent(new Event('change')); }
+  });
+
+  // Update in-memory profile
+  if (_authProfile) Object.assign(_authProfile, updates);
+
+  msg.textContent = '✓ Saved';
+  msg.className = 'pset-msg';
+  setTimeout(() => profileSettingsClose(), 800);
 }
 
 // ── Auth state listener (fires on login, logout, page load) ──────
@@ -3632,11 +3838,16 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     try {
       _authProfile = await authLoadProfile(_authUser.id);
       authApplyProfile(_authProfile);
+      if (_authProfile && !_authProfile.onboarding_complete) {
+        setTimeout(authShowOnboarding, 600);
+      }
     } catch(e) {
       _authProfile = null;
     }
+    projectInit(); // load user's projects from Supabase
   } else {
     _authProfile = null;
+    stopAutoSave();
   }
   authUpdateUI();
 });
@@ -4047,6 +4258,40 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button class="tour-btn secondary" id="tour-prev-btn" onclick="tourPrev()">Back</button>
         <button class="tour-btn primary" id="tour-next-btn" onclick="tourNext()">Next →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROFILE SETTINGS MODAL ═══ -->
+<div class="pset-overlay" id="pset-overlay" onclick="if(event.target===this)profileSettingsClose()">
+  <div class="pset-card">
+    <div class="pset-hdr">
+      <div class="pset-title">Profile settings</div>
+      <button class="pset-close" onclick="profileSettingsClose()">×</button>
+    </div>
+    <div class="pset-body">
+      <div class="pset-section-label">Architect / practice details</div>
+      <div class="pset-grid">
+        <div class="pset-field"><label>Title</label><select id="pset_arch_title"><option value="">— Select —</option><option>Mr</option><option>Mrs</option><option>Ms</option><option>Dr</option></select></div>
+        <div class="pset-field"><label>Full name &amp; surname</label><input id="pset_arch_name" placeholder="e.g. Thabo Dlamini"></div>
+        <div class="pset-field full"><label>Registration category</label><select id="pset_arch_reg_title"><option value="">— Select —</option><option>Professional Architect</option><option>Senior Professional Architect</option><option>Associate</option><option>Professional Senior Architectural Technologist</option><option>Architectural Technologist</option></select></div>
+        <div class="pset-field"><label>SACAP reg. no.</label><input id="pset_arch_sacap" placeholder="e.g. PrArch 0042/2001"></div>
+        <div class="pset-field"><label>Practice / company name</label><input id="pset_arch_practice" placeholder="e.g. Dlamini &amp; Associates"></div>
+        <div class="pset-field"><label>ID number</label><input id="pset_arch_id" placeholder="e.g. 7501015000085"></div>
+        <div class="pset-field"><label>Email</label><input type="email" id="pset_arch_email" placeholder="e.g. thabo@practice.co.za"></div>
+        <div class="pset-field"><label>Telephone</label><input id="pset_arch_tel" placeholder="e.g. 011 000 1234"></div>
+        <div class="pset-field"><label>Cell</label><input id="pset_arch_cell" placeholder="e.g. +27 71 000 5678"></div>
+        <div class="pset-field"><label>Fax</label><input id="pset_arch_fax" placeholder="optional"></div>
+        <div class="pset-field full"><label>Physical / practice address</label><input id="pset_arch_physical_addr" placeholder="e.g. 1 Sandton Drive, Sandton"></div>
+        <div class="pset-field"><label>Physical address code</label><input id="pset_arch_physical_code" placeholder="e.g. 2196"></div>
+        <div class="pset-field"><label>Postal address</label><input id="pset_arch_postal_addr" placeholder="e.g. PO Box 9999, Sandton"></div>
+        <div class="pset-field"><label>Postal code</label><input id="pset_arch_postal_code" placeholder="e.g. 2196"></div>
+        <div class="pset-field"><label>Business partner number</label><input id="pset_arch_bp_no" placeholder="e.g. 0010000042" maxlength="10"></div>
+      </div>
+    </div>
+    <div class="pset-footer">
+      <span class="pset-msg" id="pset-msg"></span>
+      <button class="pset-save" id="pset-save-btn" onclick="profileSettingsSave()">Save changes</button>
     </div>
   </div>
 </div>
