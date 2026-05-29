@@ -965,7 +965,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 52</p>
+    <p class="tb-rev">rev 53</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -4074,6 +4074,9 @@ async function logoRemove() {
   await _sb.from('profiles').update({ logo_url: null }).eq('id', _authUser.id);
   if (_authProfile) _authProfile.logo_url = null;
   logoPreviewLoad(null);
+  // Restore Millimetre logo in sidebar
+  const sbLogo = document.getElementById('sb-logo');
+  if (sbLogo) sbLogo.src = 'company-logo.png';
   status.textContent = '✓ Logo removed';
   setTimeout(() => { status.textContent = ''; }, 3000);
 }
