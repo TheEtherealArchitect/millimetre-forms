@@ -928,7 +928,7 @@ select.pr-edit{
 <div class="shell">
 <aside class="sidebar">
   <div class="sb-brand">
-    <img src="company-logo.png" class="sb-logo" alt="Millimetre Architecture">
+    <img src="company-logo.png" class="sb-logo" id="sb-logo" alt="Millimetre Architecture">
     <div class="sb-sub">Council Form Filler · Building Plans · SA</div>
   </div>
   <nav class="nav">
@@ -965,7 +965,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 51</p>
+    <p class="tb-rev">rev 52</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -3813,6 +3813,12 @@ function authApplyProfile(profile) {
     el.value = profile[id];
     el.dispatchEvent(new Event('change'));
   });
+  // Apply practice logo to sidebar if on paid tier
+  const isPaid = ['professional','firm'].includes(authTier());
+  const sbLogo = document.getElementById('sb-logo');
+  if (sbLogo) {
+    sbLogo.src = (isPaid && profile.logo_url) ? profile.logo_url : 'company-logo.png';
+  }
 }
 
 // ── Update auth UI (banner + topbar + export notice) ─────────────
@@ -4024,7 +4030,7 @@ async function logoFileSelected(input) {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 300;
+      const MAX = 600;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
         const scale = Math.min(MAX / w, MAX / h);
