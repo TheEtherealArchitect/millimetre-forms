@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Millimetre Architecture — Client Project Intake</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -15,273 +16,124 @@
   --green:#1A3A2A;--green-lt:#E8F0EB;
   --red:#5C1A1A;--red-lt:#F5EBEB;
 }
-body{
-  font-family:'Jost',sans-serif;font-weight:300;
-  background:var(--paper2);color:var(--ink);
-  min-height:100vh;font-size:13px;line-height:1.6;
-}
+body{font-family:'Jost',sans-serif;font-weight:300;background:var(--paper2);color:var(--ink);min-height:100vh;font-size:13px;line-height:1.6;}
 
-/* ── Header ─────────────────────────────────────────────────── */
-.header{
-  background:var(--ink);
-  padding:40px 48px 36px;
-  position:relative;overflow:hidden;
-}
-.header::after{
-  content:'';position:absolute;
-  bottom:0;left:48px;right:48px;
-  height:1px;background:var(--gold);opacity:.4;
-}
-.header-top{
-  display:flex;align-items:flex-start;
-  justify-content:space-between;gap:24px;
-  margin-bottom:28px;
-}
-.brand{
-  display:flex;flex-direction:column;gap:4px;
-}
-.brand-label{
-  font-family:'DM Mono',monospace;font-size:8px;
-  letter-spacing:.22em;text-transform:uppercase;
-  color:rgba(255,255,255,.3);
-}
-.brand-name{
-  font-family:'Cormorant Garamond',serif;
-  font-size:22px;font-weight:300;letter-spacing:.1em;
-  color:#fff;
-}
-.brand-url{
-  font-family:'DM Mono',monospace;font-size:9px;
-  color:rgba(255,255,255,.3);letter-spacing:.06em;margin-top:2px;
-}
-.header-ref{
-  text-align:right;
-}
-.header-ref-label{
-  font-family:'DM Mono',monospace;font-size:8px;
-  letter-spacing:.14em;text-transform:uppercase;
-  color:rgba(255,255,255,.3);margin-bottom:4px;
-}
-.header-ref-date{
-  font-family:'DM Mono',monospace;font-size:11px;
-  color:rgba(255,255,255,.5);
-}
-.header-body{
-  display:flex;flex-direction:column;gap:6px;
-}
-.header-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:32px;font-weight:300;letter-spacing:.06em;
-  color:#fff;line-height:1.1;
-}
-.header-sub{
-  font-size:11.5px;font-weight:300;
-  color:rgba(255,255,255,.45);letter-spacing:.04em;
-  max-width:480px;line-height:1.6;margin-top:4px;
-}
+/* Header */
+.header{background:var(--ink);padding:40px 48px 36px;position:relative;overflow:hidden;}
+.header::after{content:'';position:absolute;bottom:0;left:48px;right:48px;height:1px;background:var(--gold);opacity:.4;}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px;}
+.brand{display:flex;flex-direction:column;gap:4px;}
+.brand-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.1em;color:#fff;}
+.brand-url{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.06em;margin-top:2px;}
+.header-ref{text-align:right;}
+.header-ref-label{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:4px;}
+.header-ref-date{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);}
+.header-body{display:flex;flex-direction:column;gap:6px;}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;letter-spacing:.06em;color:#fff;line-height:1.1;}
+.header-sub{font-size:11.5px;font-weight:300;color:rgba(255,255,255,.45);letter-spacing:.04em;max-width:480px;line-height:1.6;margin-top:4px;}
+.header-project{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.08em;margin-top:8px;}
 
-/* ── Progress bar ───────────────────────────────────────────── */
-.progress-bar{
-  background:var(--ink);
-  padding:0 48px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.progress-steps{
-  display:flex;gap:0;
-  border-top:1px solid rgba(255,255,255,.08);
-}
-.progress-step{
-  flex:1;padding:12px 0;
-  display:flex;align-items:center;gap:10px;
-  cursor:pointer;transition:all .2s;
-  border-bottom:2px solid transparent;
-  opacity:.4;
-}
+/* Progress */
+.progress-bar{background:var(--ink);padding:0 48px;border-bottom:1px solid rgba(255,255,255,.06);}
+.progress-steps{display:flex;gap:0;border-top:1px solid rgba(255,255,255,.08);}
+.progress-step{flex:1;padding:12px 0;display:flex;align-items:center;gap:10px;cursor:default;transition:all .2s;border-bottom:2px solid transparent;opacity:.4;}
 .progress-step.active{opacity:1;border-bottom-color:var(--gold)}
 .progress-step.done{opacity:.6;border-bottom-color:var(--green)}
-.progress-step-num{
-  font-family:'DM Mono',monospace;font-size:9px;
-  color:rgba(255,255,255,.4);
-  width:18px;height:18px;
-  border:1px solid rgba(255,255,255,.15);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .2s;
-}
-.progress-step.active .progress-step-num{
-  border-color:var(--gold);color:var(--gold);
-}
-.progress-step.done .progress-step-num{
-  background:var(--green);border-color:var(--green);color:#fff;
-  font-size:10px;
-}
-.progress-step-label{
-  font-size:10px;font-weight:300;letter-spacing:.06em;
-  text-transform:uppercase;color:rgba(255,255,255,.5);
-}
+.progress-step-num{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);width:18px;height:18px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.progress-step.active .progress-step-num{border-color:var(--gold);color:var(--gold);}
+.progress-step.done .progress-step-num{background:var(--green);border-color:var(--green);color:#fff;font-size:10px;}
+.progress-step-label{font-size:10px;font-weight:300;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);}
 .progress-step.active .progress-step-label{color:rgba(255,255,255,.9)}
 
-/* ── Content ────────────────────────────────────────────────── */
+/* Content */
 .container{max-width:780px;margin:0 auto;padding:40px 24px 80px}
 
-/* ── Section ────────────────────────────────────────────────── */
-.form-section{
-  background:var(--paper);
-  border:1px solid var(--line);
-  margin-bottom:2px;
-  display:none;
-}
+/* Section */
+.form-section{background:var(--paper);border:1px solid var(--line);margin-bottom:2px;display:none;}
 .form-section.active{display:block;animation:fu .25s ease}
 @keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-
-.section-head{
-  padding:20px 28px 18px;
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;gap:14px;
-}
-.section-num{
-  font-family:'DM Mono',monospace;font-size:10px;
-  color:var(--gold);letter-spacing:.08em;
-  width:24px;height:24px;
-  border:1px solid var(--gold);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.section-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:18px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;
-}
-.section-note{
-  font-size:10px;color:var(--ink4);margin-left:auto;
-  font-family:'DM Mono',monospace;letter-spacing:.06em;
-}
+.section-head{padding:20px 28px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;}
+.section-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.08em;width:24px;height:24px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;}
+.section-note{font-size:10px;color:var(--ink4);margin-left:auto;font-family:'DM Mono',monospace;letter-spacing:.06em;}
 .section-body{padding:24px 28px}
 
-/* ── Fields ─────────────────────────────────────────────────── */
+/* Fields */
 .grid{display:grid;gap:16px}
 .g2{grid-template-columns:1fr 1fr}
 .g3{grid-template-columns:1fr 1fr 1fr}
 .span2{grid-column:span 2}
 .span3{grid-column:span 3}
 .field{display:flex;flex-direction:column;gap:5px}
-.field label{
-  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:400;
-  color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;
-}
+.field label{font-family:'DM Mono',monospace;font-size:8.5px;font-weight:400;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;}
 .req{color:var(--red);margin-left:2px}
-.field input,.field select,.field textarea{
-  font-family:'Jost',sans-serif;font-size:13px;font-weight:300;
-  padding:10px 12px;
-  border:1px solid var(--line2);
-  background:var(--paper2);color:var(--ink);
-  outline:none;width:100%;
-  transition:border-color .15s,background .15s;
-  letter-spacing:.02em;appearance:none;
-}
-.field input:focus,.field select:focus,.field textarea:focus{
-  border-color:var(--ink);background:var(--paper);
-}
-.field input::placeholder,.field textarea::placeholder{
-  color:var(--ink4);font-style:italic;font-weight:300;
-}
+.field input,.field select,.field textarea{font-family:'Jost',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;border:1px solid var(--line2);background:var(--paper2);color:var(--ink);outline:none;width:100%;transition:border-color .15s,background .15s;letter-spacing:.02em;appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ink);background:var(--paper);}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink4);font-style:italic;font-weight:300;}
 .field textarea{min-height:70px;resize:vertical}
-select{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6B6B'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-  padding-right:32px;cursor:pointer;
-}
-.field-hint{
-  font-size:10px;color:var(--ink4);
-  font-family:'DM Mono',monospace;letter-spacing:.04em;
-  margin-top:2px;font-style:italic;
-}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6B6B'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+.field-hint{font-size:10px;color:var(--ink4);font-family:'DM Mono',monospace;letter-spacing:.04em;margin-top:2px;font-style:italic;}
 
-/* ── Notice ──────────────────────────────────────────────────── */
-.notice{
-  padding:10px 14px;font-size:11.5px;margin-bottom:20px;
-  border-left:2px solid var(--gold);
-  background:var(--gold-lt);color:var(--gold-dk);
-  font-weight:300;line-height:1.55;
-}
+/* Notice */
+.notice{padding:10px 14px;font-size:11.5px;margin-bottom:20px;border-left:2px solid var(--gold);background:var(--gold-lt);color:var(--gold-dk);font-weight:300;line-height:1.55;}
+.notice-green{border-left-color:var(--green);background:var(--green-lt);color:var(--green);}
 
-/* ── Navigation ─────────────────────────────────────────────── */
-.nav-row{
-  display:flex;justify-content:space-between;
-  align-items:center;padding:20px 28px;
-  border-top:1px solid var(--line);
-  background:var(--paper2);
-}
-.btn{
-  font-family:'Jost',sans-serif;font-size:11px;font-weight:400;
-  padding:9px 22px;
-  border:1px solid var(--line2);background:var(--paper);color:var(--ink);
-  cursor:pointer;transition:all .15s;
-  letter-spacing:.08em;text-transform:uppercase;
-  display:inline-flex;align-items:center;gap:6px;
-}
+/* Nav */
+.nav-row{display:flex;justify-content:space-between;align-items:center;padding:20px 28px;border-top:1px solid var(--line);background:var(--paper2);}
+.btn{font-family:'Jost',sans-serif;font-size:11px;font-weight:400;padding:9px 22px;border:1px solid var(--line2);background:var(--paper);color:var(--ink);cursor:pointer;transition:all .15s;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .btn-primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .btn-primary:hover{background:var(--ink2)}
 .btn-gold{background:var(--gold);color:var(--paper);border-color:var(--gold)}
 .btn-gold:hover{background:var(--gold-dk)}
-.step-indicator{
-  font-family:'DM Mono',monospace;font-size:9px;
-  color:var(--ink4);letter-spacing:.1em;
-}
+.btn-green{background:var(--green);color:var(--paper);border-color:var(--green)}
+.btn-green:hover{background:#0F2218}
+.btn:disabled{opacity:.4;pointer-events:none}
+.step-indicator{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink4);letter-spacing:.1em;}
 
-/* ── Completion screen ───────────────────────────────────────── */
-.completion{
-  background:var(--paper);border:1px solid var(--line);
-  padding:48px;text-align:center;display:none;
-}
+/* Forms list (step 4) */
+.forms-list{margin-bottom:20px;}
+.form-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--line);background:var(--paper2);margin-bottom:4px;}
+.form-item-name{font-size:12px;font-weight:400;}
+.form-item-desc{font-size:10px;color:var(--ink4);font-family:'DM Mono',monospace;}
+.form-item-dl{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);text-decoration:none;letter-spacing:.06em;border:1px solid var(--gold);padding:3px 8px;}
+.form-item-dl:hover{background:var(--gold);color:#fff;}
+
+/* Signature canvas */
+.sig-wrap{border:1px solid var(--line2);background:var(--paper);position:relative;touch-action:none;}
+.sig-canvas{display:block;width:100%;height:160px;cursor:crosshair;}
+.sig-controls{display:flex;gap:8px;margin-top:8px;}
+.sig-hint{font-size:10px;color:var(--ink4);font-family:'DM Mono',monospace;margin-top:6px;font-style:italic;}
+
+/* Declaration */
+.declaration-box{border:1px solid var(--line2);padding:16px 18px;background:var(--paper2);margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--ink2);}
+.declaration-box strong{font-weight:500;}
+.cb-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid var(--line);background:var(--paper);margin-bottom:12px;cursor:pointer;}
+.cb-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:2px;accent-color:var(--green);}
+.cb-row-label{font-size:12px;line-height:1.55;}
+.wet-ink-row{border-color:var(--gold);background:var(--gold-lt);}
+.wet-ink-row .cb-row-label{color:var(--gold-dk);}
+
+/* Completion */
+.completion{background:var(--paper);border:1px solid var(--line);padding:48px;text-align:center;display:none;}
 .completion.active{display:block;animation:fu .3s ease}
-.completion-icon{
-  font-size:36px;margin-bottom:20px;
-}
-.completion-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:26px;font-weight:300;letter-spacing:.1em;
-  text-transform:uppercase;margin-bottom:8px;
-}
-.completion-sub{
-  font-size:12px;color:var(--ink3);margin-bottom:28px;
-  font-weight:300;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto;
-}
-.completion-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.json-preview{
-  margin-top:20px;text-align:left;
-  background:var(--paper2);border:1px solid var(--line);
-  padding:14px;font-family:'DM Mono',monospace;font-size:9.5px;
-  color:var(--ink3);max-height:120px;overflow:hidden;
-  position:relative;line-height:1.6;
-}
-.json-preview::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;
-  height:40px;background:linear-gradient(transparent,var(--paper2));
-}
+.completion-icon{font-size:36px;margin-bottom:20px;}
+.completion-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.completion-sub{font-size:12px;color:var(--ink3);margin-bottom:28px;font-weight:300;line-height:1.6;max-width:420px;margin-left:auto;margin-right:auto;}
 
-/* ── Footer ──────────────────────────────────────────────────── */
-.footer{
-  background:var(--ink);
-  padding:16px 48px;
-  display:flex;align-items:center;justify-content:space-between;
-  flex-wrap:wrap;gap:8px;
-  margin-top:40px;
-}
-.footer-copy{
-  font-family:'DM Mono',monospace;font-size:8.5px;
-  color:rgba(255,255,255,.3);letter-spacing:.08em;
-}
-.footer-links{
-  display:flex;gap:16px;
-}
-.footer-links a{
-  font-family:'DM Mono',monospace;font-size:8.5px;
-  color:rgba(255,255,255,.35);letter-spacing:.06em;
-  text-decoration:none;transition:color .15s;
-}
+/* Error / loading states */
+.token-error{max-width:780px;margin:60px auto;padding:0 24px;}
+.token-error-box{background:var(--paper);border:1px solid var(--line);padding:40px;text-align:center;}
+.loading-bar{text-align:center;padding:60px 24px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink4);letter-spacing:.1em;}
+
+/* Footer */
+.footer{background:var(--ink);padding:16px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:40px;}
+.footer-copy{font-family:'DM Mono',monospace;font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.08em;}
+.footer-links{display:flex;gap:16px;}
+.footer-links a{font-family:'DM Mono',monospace;font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:.06em;text-decoration:none;transition:color .15s;}
 .footer-links a:hover{color:rgba(255,255,255,.7)}
 
-/* ── Responsive ─────────────────────────────────────────────── */
 @media(max-width:640px){
   .header{padding:28px 20px 24px}
   .header-top{flex-direction:column}
@@ -293,12 +145,28 @@ select{
   .span2,.span3{grid-column:span 1}
   .footer{padding:12px 20px}
   .header-title{font-size:24px}
+  .sig-canvas{height:130px}
 }
 </style>
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────────────── -->
+<!-- Loading state -->
+<div class="loading-bar" id="loading-bar">Loading your intake form…</div>
+
+<!-- Token error state -->
+<div class="token-error" id="token-error" style="display:none">
+  <div class="token-error-box">
+    <div style="font-size:28px;margin-bottom:16px">⚠</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:10px">Link not valid</div>
+    <div style="font-size:12px;color:var(--ink3);line-height:1.6" id="token-error-msg">This intake link is invalid or has already been submitted. Please contact your architect for a new link.</div>
+  </div>
+</div>
+
+<!-- Main form (hidden until token validated) -->
+<div id="main-form" style="display:none">
+
+<!-- Header -->
 <div class="header">
   <div class="header-top">
     <div class="brand">
@@ -313,30 +181,33 @@ select{
   </div>
   <div class="header-body">
     <div class="header-title">Client Project<br>Intake Form</div>
-    <div class="header-sub">Please complete all required fields. This information will be used to prepare your building plan submission documents. All fields marked * are required.</div>
+    <div class="header-sub">Please complete all required fields. This information will be used to prepare your building plan submission documents.</div>
+    <div class="header-project" id="header-project"></div>
   </div>
 </div>
 
-<!-- ── Progress ────────────────────────────────────────────────── -->
+<!-- Progress -->
 <div class="progress-bar">
   <div class="progress-steps">
-    <div class="progress-step active" id="step-0" onclick="goStep(0)">
+    <div class="progress-step active" id="step-0">
       <div class="progress-step-num" id="step-num-0">1</div>
       <div class="progress-step-label">Your details</div>
     </div>
-
-    <div class="progress-step" id="step-1" onclick="goStep(1)">
+    <div class="progress-step" id="step-1">
       <div class="progress-step-num" id="step-num-1">2</div>
       <div class="progress-step-label">Property</div>
     </div>
-    <div class="progress-step" id="step-2" onclick="goStep(2)">
+    <div class="progress-step" id="step-2">
       <div class="progress-step-num" id="step-num-2">3</div>
       <div class="progress-step-label">Company</div>
+    </div>
+    <div class="progress-step" id="step-3">
+      <div class="progress-step-num" id="step-num-3">4</div>
+      <div class="progress-step-label">Authorisation</div>
     </div>
   </div>
 </div>
 
-<!-- ── Form sections ───────────────────────────────────────────── -->
 <div class="container">
 
   <!-- Step 1: Client details -->
@@ -373,7 +244,7 @@ select{
         </div>
         <div class="field">
           <label>ID number<span class="req">*</span></label>
-          <input id="client_id" placeholder="13-digit SA ID number">
+          <input id="client_id" placeholder="13-digit SA ID number" maxlength="13">
         </div>
         <div class="field span2">
           <label>Email address<span class="req">*</span></label>
@@ -394,7 +265,6 @@ select{
         <div class="field span3">
           <label>Residential / physical address<span class="req">*</span></label>
           <input id="client_physical_addr" placeholder="Street address, suburb, city">
-          <div class="field-hint">Full street address as registered</div>
         </div>
         <div class="field">
           <label>Area code</label>
@@ -411,23 +281,15 @@ select{
       </div>
     </div>
     <div class="nav-row">
-      <span class="step-indicator">Step 1 of 3</span>
+      <span class="step-indicator">Step 1 of 4</span>
       <button class="btn btn-primary" onclick="nextStep(0)">Next: Property details →</button>
     </div>
   </div>
 
-  
-    <div class="nav-row">
-      <button class="btn" onclick="prevStep(1)">← Back</button>
-      <span class="step-indicator">Step 2 of 4</span>
-      <button class="btn btn-primary" onclick="nextStep(1)">Next: Property details →</button>
-    </div>
-  </div>
-
-  <!-- Step 3: Property -->
+  <!-- Step 2: Property -->
   <div class="form-section" id="section-1">
     <div class="section-head">
-      <div class="section-num">03</div>
+      <div class="section-num">02</div>
       <div class="section-title">Property details</div>
       <div class="section-note">As per title deed</div>
     </div>
@@ -448,29 +310,27 @@ select{
         </div>
         <div class="field">
           <label>Business partner no.</label>
-          <input id="client_bp_no" placeholder="If known (A19 form)">
+          <input id="client_bp_no" placeholder="If known">
           <div class="field-hint">City of Cape Town accounts only</div>
         </div>
       </div>
-
-      
     </div>
     <div class="nav-row">
       <button class="btn" onclick="prevStep(1)">← Back</button>
-      <span class="step-indicator">Step 2 of 3</span>
+      <span class="step-indicator">Step 2 of 4</span>
       <button class="btn btn-primary" onclick="nextStep(1)">Next: Company details →</button>
     </div>
   </div>
 
-  <!-- Step 4: Company (optional) -->
+  <!-- Step 3: Company (optional) -->
   <div class="form-section" id="section-2">
     <div class="section-head">
-      <div class="section-num">04</div>
+      <div class="section-num">03</div>
       <div class="section-title">Company details</div>
       <div class="section-note">Complete only if owner is a company</div>
     </div>
     <div class="section-body">
-      <div class="notice">Only complete this section if the registered owner is a company, CC, trust or other juristic person. If the property is registered in your personal name, skip this section and click Submit.</div>
+      <div class="notice">Only complete this section if the registered owner is a company, CC, trust or other juristic person. If the property is registered in your personal name, skip this section.</div>
       <div class="grid g3">
         <div class="field span2">
           <label>Company / CC / trust name</label>
@@ -494,12 +354,12 @@ select{
         </div>
         <div class="field span2">
           <label>Authorised representative name</label>
-          <input id="auth_rep_name_override" placeholder="If different from architect — full name">
+          <input id="auth_rep_name" placeholder="If different from architect — full name">
           <div class="field-hint">Leave blank if the architect acts as representative</div>
         </div>
         <div class="field">
           <label>Authorised rep — ID number</label>
-          <input id="auth_rep_id_override" placeholder="ID or passport number">
+          <input id="auth_rep_id" placeholder="ID or passport number">
         </div>
         <div class="field span2">
           <label>Capacity / role</label>
@@ -513,82 +373,199 @@ select{
     </div>
     <div class="nav-row">
       <button class="btn" onclick="prevStep(2)">← Back</button>
-      <span class="step-indicator">Step 3 of 3</span>
-      <button class="btn btn-gold" onclick="submitForm()">Submit to Millimetre →</button>
+      <span class="step-indicator">Step 3 of 4</span>
+      <button class="btn btn-primary" onclick="nextStep(2)">Next: Authorisation →</button>
     </div>
   </div>
 
-  <!-- Completion screen -->
+  <!-- Step 4: Authorisation + Signature -->
+  <div class="form-section" id="section-3">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-title">Authorisation &amp; Signature</div>
+      <div class="section-note">Read carefully before signing</div>
+    </div>
+    <div class="section-body">
+
+      <div class="notice">Your architect needs your authorisation to include your signature on the council submission forms listed below. Please read this section carefully before signing.</div>
+
+      <!-- Forms your signature will appear on -->
+      <div style="margin-bottom:20px">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;">Your signature will be used on the following forms</div>
+        <div class="forms-list" id="forms-list">
+          <div class="form-item">
+            <div><div class="form-item-name">COJ Building Plan Submission Form</div><div class="form-item-desc">F-01 — City of Johannesburg</div></div>
+            <a class="form-item-dl" href="pdfs/coj.pdf" target="_blank" download>↓ View blank</a>
+          </div>
+          <div class="form-item">
+            <div><div class="form-item-name">Power of Attorney</div><div class="form-item-desc">F-05 — MPBL LUM02</div></div>
+            <a class="form-item-dl" href="pdfs/poa.pdf" target="_blank" download>↓ View blank</a>
+          </div>
+          <div class="form-item">
+            <div><div class="form-item-name">Regulation A19 Agreement</div><div class="form-item-desc">F-06 — Owner/Architect agreement</div></div>
+            <a class="form-item-dl" href="pdfs/a19.pdf" target="_blank" download>↓ View blank</a>
+          </div>
+          <div class="form-item">
+            <div><div class="form-item-name">PHRAG Heritage Application</div><div class="form-item-desc">F-07 — If heritage assessment is required</div></div>
+            <a class="form-item-dl" href="pdfs/phrag.pdf" target="_blank" download>↓ View blank</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Declaration -->
+      <div class="declaration-box" id="declaration-text">
+        By signing below, I, <strong id="decl-name">the undersigned</strong>, hereby authorise <strong>Millimetre Architecture</strong> to use my signature on all council building plan submission documents required for the application in respect of the property at <strong id="decl-address">the above-mentioned property</strong>.<br><br>
+        This includes, but is not limited to, the forms listed above. I confirm that I have read and understood the purpose of each form, that the information I have provided is accurate, and that I grant my architect a lawful mandate to act on my behalf in this submission.<br><br>
+        This electronic authorisation is made in terms of the Electronic Communications and Transactions Act 25 of 2002 (ECTA) and constitutes a valid and binding mandate.
+      </div>
+
+      <!-- Signature canvas -->
+      <div id="sig-section">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;">Your signature</div>
+        <div class="sig-wrap">
+          <canvas class="sig-canvas" id="sig-canvas" width="720" height="160"></canvas>
+        </div>
+        <div class="sig-controls">
+          <button class="btn" onclick="sigClear()">Clear signature</button>
+        </div>
+        <div class="sig-hint">Sign with your mouse or finger. Your signature will be used on the forms listed above.</div>
+      </div>
+
+      <!-- Declaration checkbox -->
+      <div style="margin-top:20px">
+        <label class="cb-row" for="decl-agree">
+          <input type="checkbox" id="decl-agree">
+          <span class="cb-row-label">I have read and understood the authorisation above and I agree to its terms. I confirm this signature is my own and I am authorised to sign on behalf of the registered owner (if applicable).</span>
+        </label>
+
+        <!-- Wet ink alternative -->
+        <label class="cb-row wet-ink-row" for="wet-ink-cb" style="margin-top:8px">
+          <input type="checkbox" id="wet-ink-cb" onchange="onWetInkToggle()">
+          <span class="cb-row-label"><strong>I prefer to sign physically (wet ink).</strong> My architect will arrange for me to sign the printed forms in person. Ticking this will skip the digital signature above.</span>
+        </label>
+      </div>
+
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevStep(3)">← Back</button>
+      <span class="step-indicator">Step 4 of 4</span>
+      <button class="btn btn-green" id="submit-btn" onclick="submitForm()">Submit authorisation →</button>
+    </div>
+  </div>
+
+  <!-- Completion -->
   <div class="completion" id="completion">
     <div class="completion-icon">✓</div>
-    <div class="completion-title">Form submitted</div>
-    <div class="completion-sub">Thank you. Your project intake information has been captured. Your architect will be in touch shortly.<br><br>Your data has also been packaged as a file for direct import into our form filler system.</div>
-    <div class="completion-btns">
-      <button class="btn btn-primary" onclick="downloadJSON()">⬇ Download project file</button>
-      <button class="btn" onclick="copyJSON()">📋 Copy to clipboard</button>
-      <button class="btn" onclick="resetForm()">Submit another</button>
+    <div class="completion-title">Submitted</div>
+    <div class="completion-sub" id="completion-sub">
+      Thank you. Your project details and authorisation have been submitted to Millimetre Architecture. Your architect will be in touch shortly.<br><br>
+      You will receive a confirmation email with a record of what you have authorised.
     </div>
-    <div class="json-preview" id="json-preview"></div>
   </div>
 
-</div>
+</div><!-- .container -->
+</div><!-- #main-form -->
 
-<!-- ── Footer ───────────────────────────────────────────────────── -->
+<!-- Footer -->
 <div class="footer">
-  <span class="footer-copy">© 2025 Millimetre Architecture. All rights reserved.</span>
+  <span class="footer-copy">© 2026 Millimetre Architecture. All rights reserved.</span>
   <div class="footer-links">
     <a href="https://www.millimetre-architecture.com" target="_blank">millimetre-architecture.com</a>
     <a href="mailto:joshil@millimetre-architecture.com">joshil@millimetre-architecture.com</a>
-    <a href="tel:+27829330414">+27 82 933 0414</a>
   </div>
 </div>
 
 <script>
-// ── State ─────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://hzqwiqeblgudsrwtgajb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_TRXh3ZIsPkMosZ2RYJeWxw_z45MbVQP';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let currentStep = 0;
-const TOTAL_STEPS = 3;
+let _token = null;
+let _tokenRow = null;
+let _sigHasContent = false;
 
 // ── Init ──────────────────────────────────────────────────────────
 document.getElementById('issue-date').textContent =
   new Date().toLocaleDateString('en-ZA', {day:'numeric', month:'long', year:'numeric'});
 
-// ── Navigation ────────────────────────────────────────────────────
-function goStep(n) {
-  if (n > currentStep) return; // can only go back via clicking steps
-  showStep(n);
+(async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const tokenParam = params.get('token');
+
+  if (!tokenParam) {
+    showError('No intake token provided. Please use the link sent to you by your architect.');
+    return;
+  }
+
+  const { data, error } = await _sb.from('intake_tokens')
+    .select('*')
+    .eq('token', tokenParam)
+    .single();
+
+  document.getElementById('loading-bar').style.display = 'none';
+
+  if (error || !data) {
+    showError('This intake link is not valid. Please contact your architect for a new link.');
+    return;
+  }
+  if (data.status === 'submitted') {
+    showError('This intake form has already been submitted. Please contact your architect if you need to make changes.');
+    return;
+  }
+
+  _token = tokenParam;
+  _tokenRow = data;
+
+  // Show project context in header
+  if (data.project_address) {
+    document.getElementById('header-project').textContent = '↳ ' + data.project_address;
+    document.getElementById('decl-address').textContent = data.project_address;
+  }
+
+  document.getElementById('main-form').style.display = '';
+  initSigCanvas();
+})();
+
+function showError(msg) {
+  document.getElementById('loading-bar').style.display = 'none';
+  document.getElementById('token-error').style.display = '';
+  document.getElementById('token-error-msg').textContent = msg;
 }
 
+// ── Navigation ────────────────────────────────────────────────────
 function nextStep(current) {
   if (!validateStep(current)) return;
   showStep(current + 1);
 }
-
 function prevStep(current) {
   showStep(current - 1);
 }
-
 function showStep(n) {
-  // Hide all sections
+  const TOTAL = 4;
   document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
   document.getElementById('completion').classList.remove('active');
 
-  if (n >= TOTAL_STEPS) {
-    // Show completion
-    document.getElementById('completion').classList.add('active');
-    return;
-  }
+  if (n >= TOTAL) return; // handled by submitForm
 
   document.getElementById('section-' + n).classList.add('active');
   currentStep = n;
 
-  // Update progress steps
   document.querySelectorAll('.progress-step').forEach((el, i) => {
     el.classList.remove('active','done');
     const num = document.getElementById('step-num-' + i);
-    if (i < n)      { el.classList.add('done'); if(num) num.textContent = '✓'; }
+    if (i < n)       { el.classList.add('done'); if(num) num.textContent = '✓'; }
     else if (i === n) { el.classList.add('active'); if(num) num.textContent = i+1; }
-    else             { if(num) num.textContent = i+1; }
+    else              { if(num) num.textContent = i+1; }
   });
+
+  // Update declaration name dynamically when entering step 4
+  if (n === 3) {
+    const name = val('client_name');
+    if (name) document.getElementById('decl-name').textContent = name;
+    const addr = val('proj_addr') || val('proj_township') || (_tokenRow && _tokenRow.project_address) || 'the above-mentioned property';
+    document.getElementById('decl-address').textContent = addr;
+  }
 
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -598,34 +575,42 @@ function validateStep(step) {
   const required = {
     0: ['client_title','client_name','client_ref','client_id','client_email','client_cell','client_physical_addr'],
     1: ['proj_township','proj_addr'],
-    2: [], // company section is optional
+    2: [],
+    3: [],
   };
-
-  const fields = required[step] || [];
   let valid = true;
-
-  // Clear previous errors
   document.querySelectorAll('.field-error').forEach(e => e.remove());
   document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
 
-  fields.forEach(id => {
+  (required[step] || []).forEach(id => {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) {
       valid = false;
-      el && el.closest('.field') && showError(el, 'This field is required');
+      if (el && el.closest('.field')) showFieldError(el, 'This field is required');
     }
   });
 
+  if (step === 3) {
+    const wetInk = document.getElementById('wet-ink-cb').checked;
+    const agreed = document.getElementById('decl-agree').checked;
+    if (!agreed) {
+      valid = false;
+      profileToast('Please tick the authorisation checkbox before submitting');
+    }
+    if (!wetInk && !_sigHasContent) {
+      valid = false;
+      profileToast('Please draw your signature, or tick "I prefer wet ink" to skip');
+    }
+  }
+
   if (!valid) {
-    // Scroll to first error
     const firstError = document.querySelector('.input-error');
     if (firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
   }
-
   return valid;
 }
 
-function showError(input, msg) {
+function showFieldError(input, msg) {
   input.style.borderColor = 'var(--red)';
   input.classList.add('input-error');
   const err = document.createElement('div');
@@ -640,14 +625,78 @@ function showError(input, msg) {
   }, {once:true});
 }
 
+// ── Signature canvas ──────────────────────────────────────────────
+function initSigCanvas() {
+  const canvas = document.getElementById('sig-canvas');
+  const ctx = canvas.getContext('2d');
+  let drawing = false, lastX = 0, lastY = 0;
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return [(src.clientX - r.left) * (canvas.width / r.width),
+            (src.clientY - r.top)  * (canvas.height / r.height)];
+  }
+  function start(e) {
+    e.preventDefault();
+    drawing = true;
+    [lastX, lastY] = getPos(e);
+  }
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const [x, y] = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#0A0A0A';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    [lastX, lastY] = [x, y];
+    _sigHasContent = true;
+  }
+  function stop() { drawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stop);
+  canvas.addEventListener('mouseleave', stop);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', draw, {passive:false});
+  canvas.addEventListener('touchend', stop);
+}
+
+function sigClear() {
+  const canvas = document.getElementById('sig-canvas');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  _sigHasContent = false;
+}
+
+function onWetInkToggle() {
+  const wetInk = document.getElementById('wet-ink-cb').checked;
+  document.getElementById('sig-section').style.opacity = wetInk ? '.35' : '1';
+  document.getElementById('sig-section').style.pointerEvents = wetInk ? 'none' : '';
+  if (wetInk) sigClear();
+}
+
 // ── Submit ────────────────────────────────────────────────────────
-function submitForm() {
+async function submitForm() {
   if (!validateStep(3)) return;
 
-  // Build the project data object — matches exactly what the app's projectWriteData() expects
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  const wetInk = document.getElementById('wet-ink-cb').checked;
+  let sigData = null;
+  if (!wetInk && _sigHasContent) {
+    sigData = document.getElementById('sig-canvas').toDataURL('image/png');
+  }
+
   const projectData = {
     fields: {
-      // Client
       client_title:          val('client_title'),
       client_name:           val('client_name'),
       client_ref:            val('client_ref'),
@@ -663,86 +712,63 @@ function submitForm() {
       client_cc_trust_no:    val('client_cc_trust_no'),
       client_shareholding:   val('client_shareholding'),
       client_bp_no:          val('client_bp_no'),
-      // Property
       proj_erf:              val('proj_erf'),
       proj_township:         val('proj_township'),
       proj_addr:             val('proj_addr'),
-      proj_municipality:     '',
-      proj_type:             '',
-      proj_date:             '',
-      proj_class:            '',
-      proj_complexity:       '',
-      proj_sensitivity:      '',
-      proj_env:              '',
-      proj_heritage:         '',
-      proj_social:           '',
-      heritage_year_site:    '',
-      heritage_year_bldg:    '',
-      heritage_years_constr: '',
-      other_years_constr:    '',
-      // Company
       company_name:          val('company_name'),
       company_reg_no:        val('company_reg_no'),
-      auth_rep_name_override:val('auth_rep_name_override'),
-      auth_rep_id_override:  val('auth_rep_id_override'),
+      auth_rep_name:         val('auth_rep_name'),
+      auth_rep_id:           val('auth_rep_id'),
       auth_rep_capacity:     val('auth_rep_capacity'),
       resolution_place:      val('resolution_place'),
-      resolution_date:       '',
-      sans_occupancy:        '',
     },
-    scheduleA:    {},
-    scheduleB:    {},
-    poaSel:       [],
-    poaOtherText: '',
-    formState:    {},
-    submittedAt:  new Date().toISOString(),
-    submittedBy:  val('client_name'),
-    projectRef:   val('proj_erf') + ' — ' + val('proj_township'),
-    _source:      'Millimetre Client Intake Form v1',
-    _instructions:'Load this file in the Council Form Filler: Project bar → select project dropdown → this will appear as a saved project after import. Or use: Project bar → import.',
+    scheduleA: {}, scheduleB: {}, poaSel: [], poaOtherText: '', formState: {},
+    _source: 'Millimetre Client Intake Form v2',
   };
 
-  // Store for download/copy
-  window._lastSubmission = projectData;
+  const { error } = await _sb.from('intake_tokens').update({
+    status:                  'submitted',
+    intake_data:             projectData,
+    signature_data:          sigData,
+    declaration_accepted_at: new Date().toISOString(),
+    wet_ink_requested:       wetInk,
+    submitted_at:            new Date().toISOString(),
+  }).eq('token', _token);
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Submit authorisation →';
+    profileToast('⚠ Submission failed — please try again or contact your architect');
+    return;
+  }
 
   // Show completion
-  showStep(TOTAL_STEPS);
-
-  // Show preview
-  const preview = JSON.stringify(projectData, null, 2).substring(0, 400) + '\n...';
-  document.getElementById('json-preview').textContent = preview;
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  const sub = document.getElementById('completion-sub');
+  if (wetInk) {
+    sub.innerHTML = 'Thank you. Your project details have been submitted to Millimetre Architecture.<br><br>You have requested to sign the forms physically — your architect will contact you to arrange this.';
+  }
+  document.getElementById('completion').classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function val(id) {
   return (document.getElementById(id)||{}).value || '';
 }
 
-// ── Download / copy ───────────────────────────────────────────────
-function downloadJSON() {
-  const data     = window._lastSubmission;
-  const filename = (data.projectRef || 'project').replace(/[^a-zA-Z0-9 _-]/g,'_') + '_intake.json';
-  const blob     = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url      = URL.createObjectURL(blob);
-  const a        = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function copyJSON() {
-  const text = JSON.stringify(window._lastSubmission, null, 2);
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = event.target;
-    btn.textContent = '✓ Copied';
-    setTimeout(() => btn.textContent = '📋 Copy to clipboard', 2000);
-  });
-}
-
-function resetForm() {
-  document.querySelectorAll('input, select, textarea').forEach(el => {
-    if (el.tagName === 'SELECT') el.selectedIndex = 0;
-    else el.value = '';
-  });
-  showStep(0);
+// ── Toast ─────────────────────────────────────────────────────────
+function profileToast(msg) {
+  let t = document.getElementById('_intake_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_intake_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0A0A0A;color:#fff;padding:10px 20px;font-family:Jost,sans-serif;font-size:12px;z-index:9999;white-space:nowrap;letter-spacing:.04em;border-left:3px solid #8B7355;transition:opacity .3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.style.opacity = '0', 3500);
 }
 </script>
 </body>

@@ -693,6 +693,15 @@ select.pr-edit{
 .project-btn.save:hover{background:var(--green-dk)}
 .project-btn.danger{background:var(--red-lt);color:var(--red);border-color:var(--red)}
 .project-btn.danger:hover{background:var(--red);color:#fff}
+.project-btn.intake{background:var(--c-poa-bg);color:var(--c-poa);border-color:var(--c-poa)}
+.project-btn.intake:hover{background:var(--c-poa);color:#fff}
+.project-intake-badge{
+  font-family:'Jost',sans-serif;font-size:10px;font-weight:500;
+  padding:3px 10px;background:var(--green-lt);color:var(--green);
+  border:1px solid var(--green);cursor:pointer;letter-spacing:.04em;
+  white-space:nowrap;
+}
+.project-intake-badge:hover{background:var(--green);color:#fff}
 .auth-gated{opacity:.32;pointer-events:none}
 .project-autosave{
   font-family:'Jost',sans-serif;font-size:10px;font-weight:400;
@@ -939,13 +948,15 @@ select.pr-edit{
   <button class="project-btn" onclick="projectUpdate()" id="proj-update-btn" style="display:none">↺ Update</button>
   <button class="project-btn danger" onclick="projectDelete()" id="proj-delete-btn" style="display:none">🗑</button>
   <label class="project-btn" id="proj-import-label" style="cursor:pointer" title="Import a project file from the client intake form">⬆ Import<input type="file" accept=".json" style="display:none" onchange="projectImportFile(this)"></label>
+  <button class="project-btn intake" id="proj-intake-btn" onclick="intakeGenerateLink()" title="Generate a client intake link for this project" style="display:none">🔗 Client intake</button>
+  <span class="project-intake-badge" id="proj-intake-badge" style="display:none" title="Client has submitted intake — click to load"></span>
   <span class="project-autosave" id="proj-autosave-status"></span>
 </div>
 <header class="topbar">
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 47</p>
+    <p class="tb-rev">rev 48</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2494,7 +2505,10 @@ function getSig(who){
   if(SIG[who].mode==='upload')return SIG[who].dataUrl;
   const c=document.getElementById(who+'-sig-canvas');if(!c)return null;
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
-  return d.some((v,i)=>i%4===3&&v>0)?c.toDataURL():null;
+  const canvasSig = d.some((v,i)=>i%4===3&&v>0)?c.toDataURL():null;
+  // Fall back to signature captured via client intake form
+  if(!canvasSig && who==='client' && window._intakeClientSig) return window._intakeClientSig;
+  return canvasSig;
 }
 
 
@@ -2575,6 +2589,95 @@ async function sbProjectLoadAll() {
     map[row.name].savedAt = row.updated_at;
   });
   return map;
+}
+
+// ── Client intake link helpers ────────────────────────────────────
+async function intakeGenerateLink() {
+  if (!_authUser) { profileToast('⚠ Sign in to generate an intake link', true); return; }
+  const projectName = projectGetActive();
+  if (!projectName) { profileToast('⚠ Save the project first, then generate an intake link', true); return; }
+  const d = getData();
+  const address = d.proj_addr || d.proj_erf || projectName;
+
+  // Check if a pending token already exists for this project
+  const { data: existing } = await _sb.from('intake_tokens')
+    .select('token,status')
+    .eq('user_id', _authUser.id)
+    .eq('project_name', projectName)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  let token;
+  if (existing && existing.length && existing[0].status === 'pending') {
+    token = existing[0].token;
+  } else {
+    // Create a new token
+    const { data: row, error } = await _sb.from('intake_tokens').insert({
+      user_id:         _authUser.id,
+      project_name:    projectName,
+      project_address: address,
+      status:          'pending',
+    }).select('token').single();
+    if (error || !row) { profileToast('⚠ Could not generate intake link', true); return; }
+    token = row.token;
+  }
+
+  const base = window.location.origin + window.location.pathname.replace('index.html','').replace(/\/[^/]*$/, '/');
+  const link = base + 'client-intake-form.html?token=' + token;
+  await navigator.clipboard.writeText(link);
+  profileToast('✓ Intake link copied to clipboard — paste it into WhatsApp or email');
+}
+
+async function intakeCheckStatus(projectName) {
+  if (!_authUser || !projectName) {
+    document.getElementById('proj-intake-badge').style.display = 'none';
+    document.getElementById('proj-intake-btn').style.display = 'none';
+    return;
+  }
+  document.getElementById('proj-intake-btn').style.display = '';
+
+  const { data } = await _sb.from('intake_tokens')
+    .select('token,status,submitted_at,intake_data,signature_data,declaration_accepted_at,wet_ink_requested')
+    .eq('user_id', _authUser.id)
+    .eq('project_name', projectName)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  const badge = document.getElementById('proj-intake-badge');
+  if (data && data.length && data[0].status === 'submitted') {
+    const row = data[0];
+    const when = row.submitted_at ? new Date(row.submitted_at).toLocaleDateString('en-ZA') : '';
+    const sigLabel = row.wet_ink_requested ? ' — wet ink requested' : (row.signature_data ? ' — signed' : '');
+    badge.textContent = '✓ Client intake submitted ' + when + sigLabel + ' — click to load';
+    badge.style.display = '';
+    badge.onclick = () => intakeLoadSubmission(row);
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function intakeLoadSubmission(row) {
+  if (!row || !row.intake_data) { profileToast('⚠ No intake data found', true); return; }
+  const data = row.intake_data;
+  projectWriteData(data);
+  // Store signature for use at export time
+  if (row.signature_data) {
+    window._intakeClientSig = row.signature_data;
+    // Also draw onto the in-app client canvas so the architect can see it
+    const canvas = document.getElementById('client-sig-canvas');
+    if (canvas) {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.classList.add('has-sig');
+        SIG['client'].dataUrl = row.signature_data;
+      };
+      img.src = row.signature_data;
+    }
+  }
+  profileToast('✓ Client intake loaded' + (row.wet_ink_requested ? ' — client requested wet ink signature' : ''));
 }
 
 // ── Read all project data from the form ───────────────────────────
@@ -2744,6 +2847,7 @@ async function projectOnSelect() {
   profileToast('✓ Project "' + name + '" loaded — last saved ' + saved);
   projectStatus('Loaded', true);
   startAutoSave();
+  intakeCheckStatus(name);
 }
 
 function requireAuth(action) {
@@ -2792,6 +2896,7 @@ function projectSave() {
       profileToast('✓ Project "' + name + '" saved');
       projectStatus('Saved', true);
       startAutoSave();
+      intakeCheckStatus(name);
       return true;
     }
   });
@@ -2888,6 +2993,7 @@ function projectImportFile(input) {
       profileToast('✓ Project "' + name + '" imported and loaded');
       projectStatus('Imported', true);
       startAutoSave();
+      intakeCheckStatus(name);
 
       // Re-render current tab
       if (currentTab === 2) renderSchedules();
