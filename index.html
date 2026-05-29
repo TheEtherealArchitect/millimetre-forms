@@ -945,7 +945,7 @@ select.pr-edit{
   <div class="tb-info">
     <h1 id="tb-title">Base information</h1>
     <p id="tb-sub">Enter details once — all forms auto-populate</p>
-    <p class="tb-rev">rev 31</p>
+    <p class="tb-rev">rev 32</p>
   </div>
   <div class="tb-right">
     <div class="step-track">
@@ -2738,7 +2738,7 @@ function projectSave() {
     body:         'Enter a name for this project. Client name and ERF number work well.',
     placeholder:  'e.g. Cat Matlala — ERF 1234 Ferndale',
     confirmLabel: '💾 Save project',
-    onConfirm: (name) => {
+    onConfirm: async (name) => {
       name = name.trim();
       if (!name) { profileToast('⚠ Please enter a project name', true); return false; }
       const data = projectReadData();
@@ -2746,8 +2746,8 @@ function projectSave() {
       projects[name] = data;
       projectSetAll(projects);
       projectSetActive(name);
-      if (_authUser) sbProjectSave(name, data).then(() => projectRebuildSelect(name));
-      else projectRebuildSelect(name);
+      if (_authUser) await sbProjectSave(name, data);
+      projectRebuildSelect(name);
       profileToast('✓ Project "' + name + '" saved');
       projectStatus('Saved', true);
       startAutoSave();
@@ -2779,12 +2779,12 @@ function projectDelete() {
     confirmLabel: '🗑 Delete',
     hideInput:    true,
     danger:       true,
-    onConfirm: () => {
+    onConfirm: async () => {
       const projects = projectGetAll();
       delete projects[name];
       projectSetAll(projects);
       projectSetActive('');
-      if (_authUser) sbProjectDelete(name).then(() => projectRebuildSelect(''));
+      if (_authUser) { await sbProjectDelete(name); projectRebuildSelect(''); }
       else projectRebuildSelect('');
       stopAutoSave();
       profileToast('Project "' + name + '" deleted');
@@ -2823,7 +2823,7 @@ function projectImportFile(input) {
   if (Object.keys(projectGetAll()).length >= plimit) { profileToast('⚠ ' + tierLimitMsg('projects', plimit), true); input.value = ''; return; }
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const data = JSON.parse(e.target.result);
       // Accept either a raw project data object or a wrapped intake form submission
@@ -2832,13 +2832,13 @@ function projectImportFile(input) {
       // Use project ref or client name as the project name
       const name = (data.projectRef || (data.fields.proj_erf + ' — ' + data.fields.client_name) || 'Imported project').trim();
 
-      // Save to project store
+      // Save to project store — await Supabase before rebuilding dropdown
       data.savedAt = new Date().toISOString();
       const projects = projectGetAll();
       projects[name] = data;
       projectSetAll(projects);
       projectSetActive(name);
-      if (_authUser) sbProjectSave(name, data);
+      if (_authUser) await sbProjectSave(name, data);
 
       // Load into form
       projectWriteData(data);
